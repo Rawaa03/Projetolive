@@ -5,7 +5,6 @@ import java.util.List;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
 import com.example.demo.model.Ressource;
-import com.example.demo.model.Travailleur;
 import com.example.demo.model.TypeRessource;
 import com.example.demo.model.Utilisateur;
 

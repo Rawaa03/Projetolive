@@ -35,9 +35,7 @@ public class Utilisateur {
 
     private List<String> vergersIds;
 
-    private EquipeInfo infoEquipe;
 
-    private PressoirInfo infoPressoir;
 
     private Boolean estActif;
 

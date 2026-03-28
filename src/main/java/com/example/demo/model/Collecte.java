@@ -28,15 +28,7 @@ public class Collecte {
     private Date dateDebut;
     
     private Date dateFin;
-    
-    private EquipeAssignée equipeAssigned;
-    
-    private List<OuvrierAssignée> ouvriers;
-    
-    private RessourceAssignée tracteur;
-    
-    private RessourceAssignée benne;
-    
+   
     private Double quantiteEstimee; // en kg
     
     private Double quantiteReelle; // en kg

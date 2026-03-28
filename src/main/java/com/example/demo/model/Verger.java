@@ -21,7 +21,6 @@ public class Verger {
     
     private String proprietaireId; // Référence à l'utilisateur (agriculteur)
     
-    private Localisation localisation;
     
     private Double superficie; // en hectares
     

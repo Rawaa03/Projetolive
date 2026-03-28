@@ -17,7 +17,7 @@ public class Collecte {
     @Id
     private String id;
     
-    private String vergerId; // Référence au verger
+    private Verger vergerId; // Référence au verger
     
     private String type; // planifiee, urgente
     

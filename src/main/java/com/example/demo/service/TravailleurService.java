@@ -1,7 +1,9 @@
 package com.example.demo.service;
 
-import com.example.demo.model.Travailleur;
+import com.example.demo.model.Ressource;
+import com.example.demo.model.TypeRessource;
 import com.example.demo.repository.TravailleurRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.Date;
@@ -11,36 +13,58 @@ import java.util.List;
 public class TravailleurService {
     
     @Autowired
-    private TravailleurRepository travailleurRepository;
+    private TravailleurRepository ressourceRepository;
     
-    public List<Travailleur> getAllTravailleurs() {
-        return travailleurRepository.findAll();
+    public List<Ressource> getAllTravailleurs() {
+        return ressourceRepository.findByType(TypeRessource.TRAVAILLEUR);
     }
     
-    public Travailleur createTravailleur(Travailleur travailleur) {
-        travailleur.setStatut("ACTIF");
+    public Ressource createTravailleur(Ressource travailleur) {
+        travailleur.setType(TypeRessource.TRAVAILLEUR);
+        travailleur.setStatut("DISPONIBLE");
         travailleur.setDateEmbauche(new Date());
-        return travailleurRepository.save(travailleur);
+        return ressourceRepository.save(travailleur);
     }
     
-    public Travailleur getTravailleurById(String id) {
-        return travailleurRepository.findById(id)
+    public Ressource getTravailleurById(String id) {
+        Ressource travailleur = ressourceRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Travailleur non trouvé"));
+        
+        if (travailleur.getType() != TypeRessource.TRAVAILLEUR) {
+            throw new RuntimeException("La ressource avec l'ID " + id + " n'est pas un travailleur");
+        }
+        
+        return travailleur;
     }
     
-    public Travailleur updateTravailleur(String id, Travailleur travailleur) {
-        Travailleur existant = getTravailleurById(id);
+    public Ressource updateTravailleur(String id, Ressource travailleur) {
+        Ressource existant = getTravailleurById(id);
+        
         existant.setNom(travailleur.getNom());
         existant.setPrenom(travailleur.getPrenom());
         existant.setTelephone(travailleur.getTelephone());
-        existant.setAdresse(travailleur.getAdresse());
-        existant.setEmail(travailleur.getEmail());
         existant.setSpecialite(travailleur.getSpecialite());
         existant.setSalaireJournalier(travailleur.getSalaireJournalier());
-        return travailleurRepository.save(existant);
+        
+        return ressourceRepository.save(existant);
     }
     
     public void deleteTravailleur(String id) {
-        travailleurRepository.deleteById(id);
+        Ressource travailleur = getTravailleurById(id);
+        
+        if (travailleur.getTourneeActuelleId() != null) {
+            throw new RuntimeException("Impossible de supprimer un travailleur actuellement en tournée");
+        }
+        
+        ressourceRepository.deleteById(id);
+    }
+    
+    public List<Ressource> getTravailleursDisponibles() {
+        return ressourceRepository.findByTypeAndStatutAndTourneeActuelleIdIsNull(
+            TypeRessource.TRAVAILLEUR, "DISPONIBLE");
+    }
+    
+    public List<Ressource> getTravailleursBySpecialite(String specialite) {
+        return ressourceRepository.findByTypeAndSpecialite(TypeRessource.TRAVAILLEUR, specialite);
     }
 }

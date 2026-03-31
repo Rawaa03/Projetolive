@@ -1,6 +1,7 @@
 package com.example.demo.service;
 
 import com.example.demo.config.JwtUtils;
+import com.example.demo.model.Role;
 import com.example.demo.model.Utilisateur;
 import com.example.demo.repository.UtilisateurRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,7 +10,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -34,32 +34,15 @@ public class AuthService {
     @Autowired
     private AuthenticationManager authenticationManager;
 
-    @Autowired
-    private CustomUserDetailsService userDetailsService;
-
-    // ===== AUTHENTICATION METHODS =====
+    // ========== MÉTHODES D'AUTHENTIFICATION ==========
     
-    // Standard login method (with detailed logging from your version)
     public Map<String, Object> login(String email, String motDePasse) {
         System.out.println("🔐 Tentative de connexion pour: " + email);
         
-        // Vérifier si l'utilisateur existe
         Utilisateur utilisateur = utilisateurRepository.findByEmail(email)
-                .orElse(null);
+                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
         
-        if (utilisateur == null) {
-            System.out.println("❌ Utilisateur non trouvé: " + email);
-            throw new RuntimeException("Utilisateur non trouvé");
-        }
-        
-        System.out.println("✅ Utilisateur trouvé: " + utilisateur.getEmail());
-        System.out.println("🔑 Hash stocké: " + utilisateur.getMotDePasse());
-        
-        // Vérifier le mot de passe
-        boolean matches = passwordEncoder.matches(motDePasse, utilisateur.getMotDePasse());
-        System.out.println("🔐 Mot de passe valide? " + matches);
-        
-        if (!matches) {
+        if (!passwordEncoder.matches(motDePasse, utilisateur.getMotDePasse())) {
             throw new RuntimeException("Mot de passe incorrect");
         }
         
@@ -67,10 +50,9 @@ public class AuthService {
             throw new RuntimeException("Compte désactivé");
         }
         
-        // Générer le token
         String token = jwtUtils.generateToken(
                 utilisateur.getEmail(),
-                utilisateur.getRole(),
+                utilisateur.getRole().toString(),
                 utilisateur.getId()
         );
         
@@ -81,23 +63,18 @@ public class AuthService {
         response.put("nom", utilisateur.getNom());
         response.put("role", utilisateur.getRole());
         response.put("token", token);
-        
-        System.out.println("✅ Connexion réussie pour: " + email);
+        response.put("compteActif", utilisateur.isCompteActif());
         
         return response;
     }
 
-    // Login method for responsables (with your detailed logging approach)
     public Map<String, Object> loginResponsable(String email, String motDePasse) {
         System.out.println("🔐 Tentative de connexion responsable pour: " + email);
         
-        Utilisateur utilisateur = utilisateurRepository.findByEmailAndRole(email, "responsable")
+        Utilisateur utilisateur = utilisateurRepository.findByEmailAndRole(email, Role.RESPONSABLE)
                 .orElseThrow(() -> new RuntimeException("Accès réservé aux responsables"));
         
-        System.out.println("✅ Responsable trouvé: " + utilisateur.getEmail());
-        
         if (!passwordEncoder.matches(motDePasse, utilisateur.getMotDePasse())) {
-            System.out.println("❌ Mot de passe incorrect pour responsable: " + email);
             throw new RuntimeException("Mot de passe incorrect");
         }
         
@@ -107,7 +84,7 @@ public class AuthService {
         
         String token = jwtUtils.generateToken(
                 utilisateur.getEmail(),
-                utilisateur.getRole(),
+                utilisateur.getRole().toString(),
                 utilisateur.getId()
         );
         
@@ -119,22 +96,16 @@ public class AuthService {
         response.put("role", utilisateur.getRole());
         response.put("token", token);
         
-        System.out.println("✅ Connexion responsable réussie pour: " + email);
-        
         return response;
     }
 
-    // Login method for admin (from teammate's version)
     public Map<String, Object> loginAdmin(String email, String motDePasse) {
         System.out.println("🔐 Tentative de connexion admin pour: " + email);
         
-        Utilisateur utilisateur = utilisateurRepository.findByEmailAndRole(email, "admin")
+        Utilisateur utilisateur = utilisateurRepository.findByEmailAndRole(email, Role.ADMIN)
                 .orElseThrow(() -> new RuntimeException("Accès réservé à l'admin"));
         
-        System.out.println("✅ Admin trouvé: " + utilisateur.getEmail());
-        
         if (!passwordEncoder.matches(motDePasse, utilisateur.getMotDePasse())) {
-            System.out.println("❌ Mot de passe incorrect pour admin: " + email);
             throw new RuntimeException("Mot de passe incorrect");
         }
         
@@ -144,7 +115,7 @@ public class AuthService {
         
         String token = jwtUtils.generateToken(
                 utilisateur.getEmail(),
-                utilisateur.getRole(),
+                utilisateur.getRole().toString(),
                 utilisateur.getId()
         );
         
@@ -155,64 +126,47 @@ public class AuthService {
         response.put("nom", utilisateur.getNom());
         response.put("role", utilisateur.getRole());
         response.put("token", token);
-        
-        System.out.println("✅ Connexion admin réussie pour: " + email);
+        response.put("compteActif", utilisateur.isCompteActif());
         
         return response;
     }
 
-    // ===== USER MANAGEMENT METHODS (from teammate's version) =====
+    // ========== MÉTHODES DE GESTION DES UTILISATEURS ==========
     
-    // Create a new user
     public Utilisateur creerUtilisateur(Utilisateur utilisateur) {
         System.out.println("📝 Création d'un nouvel utilisateur: " + utilisateur.getEmail());
         utilisateur.setMotDePasse(passwordEncoder.encode(utilisateur.getMotDePasse()));
         utilisateur.setEstActif(true);
+        utilisateur.setCompteActif(true);
         utilisateur.setDateCreation(new Date());
-        Utilisateur savedUser = utilisateurRepository.save(utilisateur);
-        System.out.println("✅ Utilisateur créé avec succès: " + savedUser.getEmail());
-        return savedUser;
+        return utilisateurRepository.save(utilisateur);
     }
 
-    // Find user by ID
     public Optional<Utilisateur> trouverUtilisateurParId(String id) {
-        System.out.println("🔍 Recherche d'utilisateur par ID: " + id);
         return utilisateurRepository.findById(id);
     }
 
-    // List all users
     public List<Utilisateur> listerUtilisateurs() {
-        System.out.println("📋 Récupération de tous les utilisateurs");
         return utilisateurRepository.findAll();
     }
 
-    // Update a user
     public Utilisateur mettreAJourUtilisateur(String id, Utilisateur utilisateur) {
-        System.out.println("✏️ Mise à jour de l'utilisateur avec ID: " + id);
-        
-        Utilisateur utilisateurExistant = utilisateurRepository.findById(id)
+        Utilisateur existant = utilisateurRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
         
-        utilisateurExistant.setNom(utilisateur.getNom());
-        utilisateurExistant.setPrenom(utilisateur.getPrenom());
-        utilisateurExistant.setTelephone(utilisateur.getTelephone());
-        utilisateurExistant.setRole(utilisateur.getRole());
-        utilisateurExistant.setAdresse(utilisateur.getAdresse());
+        existant.setNom(utilisateur.getNom());
+        existant.setPrenom(utilisateur.getPrenom());
+        existant.setTelephone(utilisateur.getTelephone());
+        existant.setRole(utilisateur.getRole());
+        existant.setAdresse(utilisateur.getAdresse());
         
-        Utilisateur updatedUser = utilisateurRepository.save(utilisateurExistant);
-        System.out.println("✅ Utilisateur mis à jour avec succès: " + updatedUser.getEmail());
-        
-        return updatedUser;
+        return utilisateurRepository.save(existant);
     }
 
-    // Delete a user
     public void supprimerUtilisateur(String id) {
-        System.out.println("🗑️ Suppression de l'utilisateur avec ID: " + id);
         utilisateurRepository.deleteById(id);
-        System.out.println("✅ Utilisateur supprimé avec succès");
     }
-    
-    // Optional: Additional helper method using AuthenticationManager (from your version)
+
     public Authentication authenticate(String email, String motDePasse) {
         try {
             Authentication authentication = authenticationManager.authenticate(
@@ -221,8 +175,151 @@ public class AuthService {
             SecurityContextHolder.getContext().setAuthentication(authentication);
             return authentication;
         } catch (AuthenticationException e) {
-            System.out.println("❌ Échec d'authentification pour: " + email);
             throw new RuntimeException("Authentification échouée: " + e.getMessage());
         }
+    }
+
+    // ========== MÉTHODES POUR L'ADMIN (ACTIVATION DES COMPTES) - CORRIGÉES ==========
+    
+    public List<Utilisateur> getAgriculteursEnAttente() {
+        // Changé: findByRoleAndACompteIsFalse -> findByRoleAndCompteActifFalse
+        return utilisateurRepository.findByRoleAndCompteActifFalse(Role.AGRICULTEUR);
+    }
+
+    public List<Utilisateur> getTravailleursEnAttente() {
+        // Changé: findByRoleAndACompteIsFalse -> findByRoleAndCompteActifFalse
+        return utilisateurRepository.findByRoleAndCompteActifFalse(Role.EQUIPE_RECOLTE);
+    }
+
+    public List<Utilisateur> getTousUtilisateursEnAttente() {
+        // Changé: findByACompteFalse -> findByCompteActifFalse
+        return utilisateurRepository.findByCompteActifFalse();
+    }
+
+ // Ajoutez dans AuthService.java
+    @Autowired
+    private EmailService emailService;
+
+    public Utilisateur activerTravailleur(String id, String nouveauMotDePasse) {
+        Utilisateur travailleur = utilisateurRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Travailleur non trouvé"));
+        
+        if (travailleur.getRole() != Role.EQUIPE_RECOLTE) {
+            throw new RuntimeException("Cet utilisateur n'est pas un travailleur");
+        }
+        
+        if (travailleur.isCompteActif()) {
+            throw new RuntimeException("Le compte de ce travailleur est déjà activé");
+        }
+        
+        // Encoder et sauvegarder le mot de passe
+        travailleur.setMotDePasse(passwordEncoder.encode(nouveauMotDePasse));
+        travailleur.setCompteActif(true);
+        travailleur.setEstActif(true);
+        
+        Utilisateur sauvegarde = utilisateurRepository.save(travailleur);
+        
+        // Envoyer l'email avec le mot de passe
+        try {
+            emailService.envoyerMotDePasse(
+                travailleur.getEmail(),
+                travailleur.getNom(),
+                travailleur.getPrenom(),
+                nouveauMotDePasse
+            );
+            System.out.println("✅ Email envoyé à " + travailleur.getEmail());
+        } catch (Exception e) {
+            System.err.println("❌ Erreur lors de l'envoi de l'email: " + e.getMessage());
+        }
+        
+        return sauvegarde;
+    }
+
+    public Utilisateur activerAgriculteur(String id, String nouveauMotDePasse) {
+        Utilisateur agriculteur = utilisateurRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Agriculteur non trouvé"));
+        
+        if (agriculteur.getRole() != Role.AGRICULTEUR) {
+            throw new RuntimeException("Cet utilisateur n'est pas un agriculteur");
+        }
+        
+        if (agriculteur.isCompteActif()) {
+            throw new RuntimeException("Le compte de cet agriculteur est déjà activé");
+        }
+        
+        agriculteur.setMotDePasse(passwordEncoder.encode(nouveauMotDePasse));
+        agriculteur.setCompteActif(true);
+        agriculteur.setEstActif(true);
+        
+        Utilisateur sauvegarde = utilisateurRepository.save(agriculteur);
+        
+        // Envoyer l'email avec le mot de passe
+        try {
+            emailService.envoyerMotDePasse(
+                agriculteur.getEmail(),
+                agriculteur.getNom(),
+                agriculteur.getPrenom(),
+                nouveauMotDePasse
+            );
+            System.out.println("✅ Email envoyé à " + agriculteur.getEmail());
+        } catch (Exception e) {
+            System.err.println("❌ Erreur lors de l'envoi de l'email: " + e.getMessage());
+        }
+        
+        return sauvegarde;
+    }
+
+
+    public Utilisateur activerCompte(String id, String nouveauMotDePasse) {
+        Utilisateur utilisateur = utilisateurRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+        
+        if (utilisateur.isCompteActif()) {
+            throw new RuntimeException("Le compte est déjà activé");
+        }
+        
+        utilisateur.setMotDePasse(passwordEncoder.encode(nouveauMotDePasse));
+        utilisateur.setCompteActif(true);
+        utilisateur.setEstActif(true);
+        
+        return utilisateurRepository.save(utilisateur);
+    }
+
+    public List<Utilisateur> activerPlusieursAgriculteurs(List<String> ids, String motDePasseParDefaut) {
+        List<Utilisateur> agriculteurs = utilisateurRepository.findAllById(ids);
+        
+        for (Utilisateur agriculteur : agriculteurs) {
+            if (agriculteur.getRole() == Role.AGRICULTEUR && !agriculteur.isCompteActif()) {
+                agriculteur.setMotDePasse(passwordEncoder.encode(motDePasseParDefaut));
+                agriculteur.setCompteActif(true);
+                agriculteur.setEstActif(true);
+            }
+        }
+        
+        return utilisateurRepository.saveAll(agriculteurs);
+    }
+
+    public List<Utilisateur> activerPlusieursTravailleurs(List<String> ids, String motDePasseParDefaut) {
+        List<Utilisateur> travailleurs = utilisateurRepository.findAllById(ids);
+        
+        for (Utilisateur travailleur : travailleurs) {
+            if (travailleur.getRole() == Role.EQUIPE_RECOLTE && !travailleur.isCompteActif()) {
+                travailleur.setMotDePasse(passwordEncoder.encode(motDePasseParDefaut));
+                travailleur.setCompteActif(true);
+                travailleur.setEstActif(true);
+            }
+        }
+        
+        return utilisateurRepository.saveAll(travailleurs);
+    }
+
+    public long compterAgriculteursEnAttente() {
+        // Changé: countByRoleAndAccountFalse -> countByRoleAndCompteActifFalse
+        return utilisateurRepository.countByRoleAndCompteActifFalse(Role.AGRICULTEUR);
+    }
+
+    public long compterTravailleursEnAttente() {
+        // Changé: countByRoleAndAccountFalse -> countByRoleAndCompteActifFalse
+        return utilisateurRepository.countByRoleAndCompteActifFalse(Role.EQUIPE_RECOLTE);
     }
 }

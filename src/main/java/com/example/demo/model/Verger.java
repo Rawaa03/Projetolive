@@ -31,12 +31,15 @@ public class Verger {
     private Double rendementEstime; // en kg
     
     private Integer maturiteActuelle; // pourcentage
-    
+    private Integer niveauMaturite; // 0-100%
+
     private String statut; // non_recolte, en_cours, recolte
     
     private Date dateDerniereRecolte;
     
     private Boolean estActif;
+    private String agriculteurId; // Référence à l'agriculteur
+
     
     private Date dateCreation;
 }

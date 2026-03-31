@@ -1,5 +1,6 @@
 package com.example.demo;
 
+import com.example.demo.model.Role;
 import com.example.demo.model.Utilisateur;
 import com.example.demo.repository.UtilisateurRepository;
 import org.springframework.boot.CommandLineRunner;
@@ -34,11 +35,11 @@ public class ProjetCollecteOliveApplication {
                 admin.setPrenom("Admin");
                 admin.setNom("Coopérative");
                 admin.setTelephone("+216 98 765 432");
-                admin.setRole("admin");
+                admin.setRole(Role.ADMIN);
                 admin.setAdresse("Sfax, Tunisie");
                 admin.setEstActif(true);
                 admin.setDateCreation(new Date());
-
+admin.setCompteActif(true);
                 BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
                 admin.setMotDePasse(encoder.encode("admin123"));
 
@@ -58,11 +59,11 @@ public class ProjetCollecteOliveApplication {
                 responsable.setPrenom("Faiza");  // Keeping your specific name
                 responsable.setNom("Ghozzi");    // Keeping your specific name
                 responsable.setTelephone("+216 98 765 432");
-                responsable.setRole("responsable");
+                responsable.setRole(Role.RESPONSABLE);
                 responsable.setAdresse("Sfax, Tunisie");
                 responsable.setEstActif(true);
                 responsable.setDateCreation(new Date());
-                
+                responsable.setCompteActif(true);
                 BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
                 responsable.setMotDePasse(encoder.encode("responsable123")); // Using teammate's password
                 
@@ -84,7 +85,7 @@ public class ProjetCollecteOliveApplication {
                 agriculteur.setPrenom("Mohamed");
                 agriculteur.setNom("Ben Ali");
                 agriculteur.setTelephone("+216 55 555 555");
-                agriculteur.setRole("agriculteur");
+                agriculteur.setRole(Role.AGRICULTEUR);
                 agriculteur.setAdresse("Mahdia, Tunisie");
                 agriculteur.setEstActif(true);
                 agriculteur.setDateCreation(new Date());
@@ -107,7 +108,7 @@ public class ProjetCollecteOliveApplication {
                 equipeRecolte.setPrenom("Karim");
                 equipeRecolte.setNom("Said");
                 equipeRecolte.setTelephone("+216 77 777 777");
-                equipeRecolte.setRole("equipe_recolte");
+                equipeRecolte.setRole(Role.EQUIPE_RECOLTE);
                 equipeRecolte.setAdresse("Sousse, Tunisie");
                 equipeRecolte.setEstActif(true);
                 equipeRecolte.setDateCreation(new Date());
@@ -127,7 +128,7 @@ public class ProjetCollecteOliveApplication {
             System.out.println("========================================");
             System.out.println("📋 Résumé des utilisateurs disponibles:");
             System.out.println("   👑 ADMIN: admin@cooperative.com / admin123");
-            System.out.println("   👤 RESPONSABLE: responsable@cooperative.com / responsable123");
+            System.out.println("   👤 RESPONSABLE:   / responsable123");
             System.out.println("   👨‍🌾 AGRICULTEUR: agriculteur@test.com / agriculteur123");
             System.out.println("   🚜 EQUIPE_RECOLTE: equipe@recolte.com / equipe123");
             System.out.println("========================================\n");

@@ -1,9 +1,9 @@
 package com.example.demo.config;
 
+import com.example.demo.model.Role;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.security.InvalidKeyException;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -28,19 +28,26 @@ public class JwtUtils {
         return Keys.hmacShaKeyFor(secret.getBytes());
     }
     
+    // Méthode qui accepte String (pour la compatibilité)
     public String generateToken(String email, String role, String id) {
-    Map<String, Object> claims = new HashMap<>();
-    claims.put("role", role);
-    claims.put("userId", id);
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("role", role);
+        claims.put("userId", id);
+        
+        return Jwts.builder()
+                .setClaims(claims)
+                .setSubject(email)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + expiration))
+                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
+                .compact();
+    }
     
-    return Jwts.builder()
-            .setClaims(claims)
-            .setSubject(email)
-            .setIssuedAt(new Date())
-            .setExpiration(new Date(System.currentTimeMillis() + expiration))
-            .signWith(getSigningKey(), SignatureAlgorithm.HS256)
-            .compact();
-}
+    // Nouvelle méthode qui accepte l'enum Role
+    public String generateToken(String email, Role role, String id) {
+        return generateToken(email, role.toString(), id);
+    }
+    
     public String extractEmail(String token) {
         return extractClaim(token, Claims::getSubject);
     }

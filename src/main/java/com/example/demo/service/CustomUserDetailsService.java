@@ -9,7 +9,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-import java.util.Collections;
+import java.util.List;
 
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
@@ -29,7 +29,7 @@ public class CustomUserDetailsService implements UserDetailsService {
         return new User(
                 utilisateur.getEmail(),
                 utilisateur.getMotDePasse(),
-                Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + utilisateur.getRole().toUpperCase()))
+                List.of(new SimpleGrantedAuthority("ROLE_" + utilisateur.getRole().name()))
         );
     }
 }

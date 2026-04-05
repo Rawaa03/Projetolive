@@ -52,8 +52,7 @@ public class Utilisateur {
     // ========== ATTRIBUTS POUR ROLE: AGRICULTEUR ==========
     private String nomExploitation;
     private List<Verger> vergers;
-    
-    // ========== ATTRIBUTS POUR ROLE: EQUIPE_RECOLTE ==========
+    @Indexed(unique = true)    // ========== ATTRIBUTS POUR ROLE: EQUIPE_RECOLTE ==========
     private String cin;
     private List<String> specialites;
     private List<Collecte> collectesAssignees;

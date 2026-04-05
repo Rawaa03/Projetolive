@@ -1,12 +1,16 @@
 package com.example.demo.controller;
 
+import com.example.demo.model.Role;
 import com.example.demo.model.Utilisateur;
+import com.example.demo.repository.UtilisateurRepository;
 import com.example.demo.service.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,6 +22,69 @@ public class AuthController {
 
     @Autowired
     private AuthService authService;
+
+    @Autowired
+    private UtilisateurRepository utilisateurRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    // ========== ADMIN : CRÉATION D'UTILISATEURS AVEC TOUS LES RÔLES ==========
+    @PostMapping("/admin/utilisateurs")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Map<String, Object>> creerUtilisateurParAdmin(@RequestBody Utilisateur utilisateur) {
+        Map<String, Object> response = authService.creerUtilisateurParAdmin(utilisateur);
+        return ResponseEntity.ok(response);
+    }
+    private void validateUserByRole(Utilisateur utilisateur) {
+        if (utilisateur.getRole() == null) {
+            throw new RuntimeException("Le rôle est requis");
+        }
+        
+        switch (utilisateur.getRole()) {
+            case ADMIN:
+                // Pas de validation spécifique pour ADMIN
+                System.out.println("✅ Création d'un compte ADMIN");
+                break;
+                
+            case RESPONSABLE:
+                if (utilisateur.getFonction() == null || utilisateur.getFonction().trim().isEmpty()) {
+                    throw new RuntimeException("La fonction est requise pour un responsable");
+                }
+                System.out.println("✅ Création d'un compte RESPONSABLE - Fonction: " + utilisateur.getFonction());
+                break;
+                
+            case AGRICULTEUR:
+                if (utilisateur.getNomExploitation() == null || utilisateur.getNomExploitation().trim().isEmpty()) {
+                    throw new RuntimeException("Le nom d'exploitation est requis pour un agriculteur");
+                }
+                System.out.println("✅ Création d'un compte AGRICULTEUR - Exploitation: " + utilisateur.getNomExploitation());
+                break;
+                
+            case EQUIPE_RECOLTE:
+                if (utilisateur.getCin() == null || utilisateur.getCin().trim().isEmpty()) {
+                    throw new RuntimeException("Le CIN est requis pour un travailleur");
+                }
+                if (utilisateur.getStatutEmploye() == null) {
+                    throw new RuntimeException("Le statut de l'employé est requis");
+                }
+                System.out.println("✅ Création d'un compte EQUIPE_RECOLTE - CIN: " + utilisateur.getCin());
+                break;
+                
+            case TRANSPORTEUR:
+                if (utilisateur.getPermis() == null || utilisateur.getPermis().trim().isEmpty()) {
+                    throw new RuntimeException("Le permis est requis pour un transporteur");
+                }
+                if (utilisateur.getTarifKm() == null) {
+                    throw new RuntimeException("Le tarif au km est requis pour un transporteur");
+                }
+                System.out.println("✅ Création d'un compte TRANSPORTEUR - Permis: " + utilisateur.getPermis());
+                break;
+                
+            default:
+                throw new RuntimeException("Rôle non reconnu: " + utilisateur.getRole());
+        }
+    }
 
     // ===== AUTHENTICATION ENDPOINTS =====
     
@@ -89,7 +156,7 @@ public class AuthController {
         return ResponseEntity.noContent().build();
     }
 
-    // ===== ENDPOINTS ADMIN CORRIGÉS =====
+    // ===== ENDPOINTS ADMIN POUR ACTIVATION =====
     
     @GetMapping("/admin/agriculteurs/en-attente")
     @PreAuthorize("hasRole('ADMIN')")
@@ -118,7 +185,6 @@ public class AuthController {
         return ResponseEntity.ok(stats);
     }
 
-    // Correction : Utiliser @RequestBody au lieu de @RequestParam
     @PostMapping("/admin/activer-agriculteur/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, Object>> activerAgriculteur(
@@ -132,7 +198,6 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
-    // Correction : Utiliser @RequestBody au lieu de @RequestParam
     @PostMapping("/admin/activer-travailleur/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, Object>> activerTravailleur(

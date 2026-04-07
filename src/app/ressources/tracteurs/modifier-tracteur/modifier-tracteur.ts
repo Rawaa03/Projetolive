@@ -129,21 +129,24 @@ export class ModifierTracteurComponent implements OnInit {
     this.successMessage = '';
 
     const tracteurData: Partial<Tracteur> = {
-      puissanceMoteur: this.tracteurForm.value.puissanceMoteur,
-      consommationCarburant: this.tracteurForm.value.consommationCarburant,
-      kilometrage: this.tracteurForm.value.kilometrage,
+      puissanceMoteur: Number(this.tracteurForm.value.puissanceMoteur),
+      consommationCarburant: Number(this.tracteurForm.value.consommationCarburant),
+      kilometrage: Number(this.tracteurForm.value.kilometrage),
       typeCarburant: this.tracteurForm.value.typeCarburant,
-      remorqueAttachee: this.tracteurForm.value.remorqueAttachee,
+      remorqueAttachee: this.tracteurForm.value.remorqueAttachee || false,
       marque: this.tracteurForm.value.marque,
       modele: this.tracteurForm.value.modele,
-      annee: this.tracteurForm.value.annee,
-      couleur: this.tracteurForm.value.couleur,
-      description: this.tracteurForm.value.description,
+      annee: Number(this.tracteurForm.value.annee),
+      couleur: this.tracteurForm.value.couleur || '',
+      description: this.tracteurForm.value.description || '',
       statut: this.tracteurForm.value.enMaintenance ? 'MAINTENANCE' : 'DISPONIBLE'
     };
 
+    console.log('[v0] Updating tracteur with data:', tracteurData);
+
     this.tracteurService.update(this.tracteurId, tracteurData).subscribe({
-      next: () => {
+      next: (response) => {
+        console.log('[v0] Tracteur updated successfully:', response);
         this.isLoading = false;
         this.successMessage = 'Tracteur modifié avec succès !';
         setTimeout(() => {
@@ -151,6 +154,7 @@ export class ModifierTracteurComponent implements OnInit {
         }, 1500);
       },
       error: (err: HttpErrorResponse) => {
+        console.log('[v0] Error updating tracteur:', err);
         this.isLoading = false;
         this.errorMessage = err.message || 'Erreur lors de la modification du tracteur';
         console.error('Erreur:', err);

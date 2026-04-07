@@ -118,16 +118,19 @@ export class ModifierBenneComponent implements OnInit {
     this.successMessage = '';
 
     const benneData: Partial<Benne> = {
-      capaciteMax: this.benneForm.value.capaciteMax,
+      capaciteMax: Number(this.benneForm.value.capaciteMax),
       typeMateriau: this.benneForm.value.typeMateriau,
-      usure: this.benneForm.value.usure,
-      couleur: this.benneForm.value.couleur,
-      description: this.benneForm.value.description,
+      usure: Number(this.benneForm.value.usure),
+      couleur: this.benneForm.value.couleur || '',
+      description: this.benneForm.value.description || '',
       statut: this.benneForm.value.enMaintenance ? 'MAINTENANCE' : 'DISPONIBLE'
     };
 
+    console.log('[v0] Updating benne with data:', benneData);
+
     this.benneService.update(this.benneId, benneData).subscribe({
-      next: () => {
+      next: (response) => {
+        console.log('[v0] Benne updated successfully:', response);
         this.isLoading = false;
         this.successMessage = 'Benne modifiée avec succès !';
         setTimeout(() => {
@@ -135,6 +138,7 @@ export class ModifierBenneComponent implements OnInit {
         }, 1500);
       },
       error: (err: HttpErrorResponse) => {
+        console.log('[v0] Error updating benne:', err);
         this.isLoading = false;
         this.errorMessage = err.message || 'Erreur lors de la modification de la benne';
         console.error('Erreur:', err);

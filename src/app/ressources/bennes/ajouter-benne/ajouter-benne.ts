@@ -81,6 +81,8 @@ export class AjouterBenneComponent implements OnInit {
   onSubmit(): void {
     if (this.benneForm.invalid) {
       this.errorMessage = 'Veuillez remplir tous les champs obligatoires';
+      console.log('[v0] Form invalid. Form status:', this.benneForm.status);
+      console.log('[v0] Form errors:', this.benneForm.errors);
       return;
     }
 
@@ -89,15 +91,18 @@ export class AjouterBenneComponent implements OnInit {
     this.successMessage = '';
 
     const benneData: BenneCreation = {
-      capaciteMax: this.benneForm.value.capaciteMax,
+      capaciteMax: Number(this.benneForm.value.capaciteMax),
       typeMateriau: this.benneForm.value.typeMateriau,
-      usure: this.benneForm.value.usure,
-      couleur: this.benneForm.value.couleur,
-      description: this.benneForm.value.description
+      usure: Number(this.benneForm.value.usure),
+      couleur: this.benneForm.value.couleur || '',
+      description: this.benneForm.value.description || ''
     };
 
+    console.log('[v0] Submitting benne data:', benneData);
+
     this.benneService.create(benneData).subscribe({
-      next: () => {
+      next: (response) => {
+        console.log('[v0] Benne created successfully:', response);
         this.isLoading = false;
         this.successMessage = 'Benne ajoutée avec succès !';
         setTimeout(() => {
@@ -105,6 +110,7 @@ export class AjouterBenneComponent implements OnInit {
         }, 1500);
       },
       error: (err: HttpErrorResponse) => {
+        console.log('[v0] Error creating benne:', err);
         this.isLoading = false;
         this.errorMessage = err.message || 'Erreur lors de l\'ajout de la benne';
         console.error('Erreur:', err);

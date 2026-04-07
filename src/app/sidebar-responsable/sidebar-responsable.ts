@@ -191,10 +191,23 @@ export class SideBarResponsable implements OnInit {
     }
 
     console.log('Filtering menu for role:', this.userRole);
-    this.filteredMenuItems = this.menuItems.filter(item => {
-      if (!item.roles) return true;
-      return item.roles.includes(this.userRole);
-    });
+    this.filteredMenuItems = this.menuItems
+      .filter(item => {
+        if (!item.roles) return true;
+        return item.roles.includes(this.userRole);
+      })
+      .map(item => {
+        if (item.children && item.children.length > 0) {
+          return {
+            ...item,
+            children: item.children.filter(child => {
+              if (!child.roles) return true;
+              return child.roles.includes(this.userRole);
+            })
+          };
+        }
+        return item;
+      });
     console.log('Filtered menu items:', this.filteredMenuItems);
   }
 

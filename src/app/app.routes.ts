@@ -10,6 +10,10 @@ import { CreerAgriculteur } from './agriculteurs/creer-agriculteur/creer-agricul
 import { ModifierAgriculteur } from './agriculteurs/modifier-agriculteur/modifier-agriculteur';
 import { ListeUtilisateurs } from './utilisateurs/liste-utilisateurs/liste-utilisateurs';
 import { ActivationComptes } from './admin/activation-comptes/activation-comptes';
+import { ListeBennes } from './ressources/liste-bennes/liste-bennes';
+import { CreerBenne } from './ressources/creer-benne/creer-benne';
+import { ListeTracteurs } from './ressources/liste-tracteurs/liste-tracteurs';
+import { CreerTracteur } from './ressources/creer-tracteur/creer-tracteur';
 import { AuthGuard } from './guards/auth-guard';
 import { roleGuard } from './guards/role-guard';
 
@@ -74,6 +78,46 @@ export const routes: Routes = [
     component: ActivationComptes,
     canActivate: [AuthGuard, roleGuard],
     data: { role: 'admin' }
+  },
+
+  // Routes Ressources (Bennes)
+  {
+    path: 'ressources/bennes',
+    component: ListeBennes,
+    canActivate: [AuthGuard, roleGuard],
+    data: { role: 'responsable' }
+  },
+  {
+    path: 'ressources/bennes/creer',
+    component: CreerBenne,
+    canActivate: [AuthGuard, roleGuard],
+    data: { role: 'responsable' }
+  },
+  {
+    path: 'ressources/bennes/modifier/:id',
+    component: CreerBenne,
+    canActivate: [AuthGuard, roleGuard],
+    data: { role: 'responsable' }
+  },
+
+  // Routes Ressources (Tracteurs)
+  {
+    path: 'ressources/tracteurs',
+    component: ListeTracteurs,
+    canActivate: [AuthGuard, roleGuard],
+    data: { role: 'responsable' }
+  },
+  {
+    path: 'ressources/tracteurs/creer',
+    component: CreerTracteur,
+    canActivate: [AuthGuard, roleGuard],
+    data: { role: 'responsable' }
+  },
+  {
+    path: 'ressources/tracteurs/modifier/:id',
+    component: CreerTracteur,
+    canActivate: [AuthGuard, roleGuard],
+    data: { role: 'responsable' }
   },
 
   { path: '**', redirectTo: '/login' }

@@ -59,7 +59,7 @@
           [class.active]="isActive(item.route)"
           [class.has-children]="item.children?.length">
 
-        <a (click)="navigate(item.route)" class="nav-link">
+        <a *ngIf="!item.children?.length" (click)="navigate(item.route)" class="nav-link">
           <span class="nav-icon">
             <svg viewBox="0 0 24 24" fill="none">
               <path [attr.d]="getIconPath(item.icon)" stroke="currentColor" fill="currentColor"/>
@@ -69,6 +69,21 @@
 
           <span class="nav-badge" *ngIf="item.id === 'alertes' && unreadAlerts > 0 && !isCollapsed">
             {{ unreadAlerts }}
+          </span>
+        </a>
+
+        <!-- Menu with submenu -->
+        <a *ngIf="item.children?.length" (click)="toggleMenu(item.id)" class="nav-link">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path [attr.d]="getIconPath(item.icon)" stroke="currentColor" fill="currentColor"/>
+            </svg>
+          </span>
+          <span class="nav-label" *ngIf="!isCollapsed">{{ item.label }}</span>
+          <span class="nav-expand" *ngIf="!isCollapsed && item.children?.length">
+            <svg viewBox="0 0 24 24" fill="none" [class.rotated]="isMenuExpanded(item.id)">
+              <path d="M7 10l5 5 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
           </span>
         </a>
 

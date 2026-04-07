@@ -1,0 +1,69 @@
+<div class="container">
+  <div class="header">
+    <h1>Liste des Tracteurs</h1>
+    <button class="btn btn-primary" (click)="ajouter()">
+      <svg viewBox="0 0 24 24" fill="none" width="20" height="20">
+        <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      Ajouter
+    </button>
+  </div>
+
+  <div *ngIf="errorMessage" class="error-message">
+    {{ errorMessage }}
+  </div>
+
+  <div *ngIf="loading" class="loading">
+    Chargement...
+  </div>
+
+  <div *ngIf="!loading && tracteurs.length === 0" class="empty-state">
+    <p>Aucun tracteur trouvé. Commencez par en ajouter un.</p>
+  </div>
+
+  <div *ngIf="!loading && tracteurs.length > 0" class="table-container">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Marque</th>
+          <th>Modèle</th>
+          <th>Année</th>
+          <th>Statut</th>
+          <th>Carburant</th>
+          <th>Puissance (CV)</th>
+          <th>Kilométrage</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let tracteur of tracteurs">
+          <td>{{ tracteur.type }}</td>
+          <td>{{ tracteur.marque }}</td>
+          <td>{{ tracteur.modele }}</td>
+          <td>{{ tracteur.annee }}</td>
+          <td>
+            <span class="badge" [style.backgroundColor]="getStatusColor(tracteur.statut)">
+              {{ tracteur.statut }}
+            </span>
+          </td>
+          <td>{{ tracteur.moteur_specifications?.type_carburant || 'N/A' }}</td>
+          <td>{{ tracteur.moteur_specifications?.puissance_cv || 'N/A' }}</td>
+          <td>{{ tracteur.kilometrage }} km</td>
+          <td class="actions">
+            <button class="btn btn-small btn-edit" (click)="modifier(tracteur._id)" title="Modifier">
+              <svg viewBox="0 0 24 24" fill="none" width="18" height="18">
+                <path d="M3 17.25V21h3.75L17.81 9.94m-4.75-4.75L21 3.98" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </button>
+            <button class="btn btn-small btn-delete" (click)="supprimer(tracteur._id)" title="Supprimer">
+              <svg viewBox="0 0 24 24" fill="none" width="18" height="18">
+                <path d="M3 6h18M8 6V4c0-.55.45-1 1-1h6c.55 0 1 .45 1 1v2m-2 0v14c0 .55-.45 1-1 1H9c-.55 0-1-.45-1-1V6h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

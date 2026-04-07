@@ -1,0 +1,156 @@
+<div class="container">
+  <div class="header">
+    <h1>{{ isEditing ? 'Modifier' : 'Ajouter' }} un Tracteur</h1>
+    <button class="btn btn-secondary" (click)="goBack()">Retour</button>
+  </div>
+
+  <div *ngIf="errorMessage" class="error-message">
+    {{ errorMessage }}
+  </div>
+
+  <div *ngIf="successMessage" class="success-message">
+    {{ successMessage }}
+  </div>
+
+  <div *ngIf="loading && isEditing" class="loading">
+    Chargement...
+  </div>
+
+  <form (ngSubmit)="onSubmit()" class="form">
+    <h2 class="section-title">Informations Générales</h2>
+
+    <div class="form-group">
+      <label for="type">Type de Tracteur *</label>
+      <input
+        type="text"
+        id="type"
+        [(ngModel)]="tracteur.type"
+        name="type"
+        placeholder="Ex: Tracteur agricole"
+        required
+      />
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="marque">Marque *</label>
+        <input
+          type="text"
+          id="marque"
+          [(ngModel)]="tracteur.marque"
+          name="marque"
+          placeholder="Ex: John Deere"
+          required
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="modele">Modèle *</label>
+        <input
+          type="text"
+          id="modele"
+          [(ngModel)]="tracteur.modele"
+          name="modele"
+          placeholder="Ex: 5075E"
+          required
+        />
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="annee">Année</label>
+        <input
+          type="number"
+          id="annee"
+          [(ngModel)]="tracteur.annee"
+          name="annee"
+          min="1900"
+          [max]="new Date().getFullYear()"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="statut">Statut</label>
+        <select id="statut" [(ngModel)]="tracteur.statut" name="statut">
+          <option value="disponible">Disponible</option>
+          <option value="en_utilisation">En utilisation</option>
+          <option value="maintenance">Maintenance</option>
+          <option value="hors_service">Hors service</option>
+        </select>
+      </div>
+    </div>
+
+    <h2 class="section-title">Moteur</h2>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="carburant">Type de Carburant</label>
+        <select id="carburant" [(ngModel)]="tracteur.moteur_specifications.type_carburant" name="carburant">
+          <option value="">Sélectionner</option>
+          <option value="essence">Essence</option>
+          <option value="diesel">Diesel</option>
+          <option value="electrique">Électrique</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="cylindree">Cylindrée (cm³)</label>
+        <input
+          type="number"
+          id="cylindree"
+          [(ngModel)]="tracteur.moteur_specifications.cylindree"
+          name="cylindree"
+          min="0"
+        />
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="puissance">Puissance (CV)</label>
+        <input
+          type="number"
+          id="puissance"
+          [(ngModel)]="tracteur.moteur_specifications.puissance_cv"
+          name="puissance"
+          min="0"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="consommation">Consommation (L/h)</label>
+        <input
+          type="number"
+          id="consommation"
+          [(ngModel)]="tracteur.consommation_carburant"
+          name="consommation"
+          min="0"
+          step="0.1"
+        />
+      </div>
+    </div>
+
+    <h2 class="section-title">Utilisation</h2>
+
+    <div class="form-group">
+      <label for="kilometrage">Kilométrage (km)</label>
+      <input
+        type="number"
+        id="kilometrage"
+        [(ngModel)]="tracteur.kilometrage"
+        name="kilometrage"
+        min="0"
+      />
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary" [disabled]="loading">
+        {{ loading ? 'Veuillez patienter...' : (isEditing ? 'Modifier' : 'Créer') }}
+      </button>
+      <button type="button" class="btn btn-secondary" (click)="goBack()">
+        Annuler
+      </button>
+    </div>
+  </form>
+</div>

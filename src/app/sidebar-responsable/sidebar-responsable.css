@@ -238,6 +238,25 @@
   font-weight: 500;
 }
 
+.nav-expand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  transition: transform 0.3s ease;
+}
+
+.nav-expand svg {
+  width: 16px;
+  height: 16px;
+  transition: transform 0.3s ease;
+}
+
+.nav-expand.rotated svg {
+  transform: rotate(180deg);
+}
+
 .nav-badge {
   background: #8A2A1A;
   color: white;

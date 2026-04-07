@@ -1,0 +1,232 @@
+<!-- src/app/ressources/tracteurs/modifier-tracteur/modifier-tracteur.html -->
+<div class="app-layout">
+
+  <!-- Sidebar Component -->
+  <app-sidebar
+    [isCollapsed]="isSidebarCollapsed"
+    (toggleSidebar)="toggleSidebar()"
+    [userRole]="userRole">
+  </app-sidebar>
+
+  <!-- Main Content -->
+  <main class="main-content"
+        [class.sidebar-collapsed]="isSidebarCollapsed"
+        [class.sidebar-open]="!isSidebarCollapsed">
+
+    <!-- Mobile Menu Toggle Button -->
+    <button class="mobile-menu-toggle" (click)="toggleSidebar()" *ngIf="isMobile">
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M3 12H21M3 6H21M3 18H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </button>
+
+    <div class="oh-scene">
+
+      <!-- Ambient soft orbs -->
+      <div class="oh-ambient" aria-hidden="true">
+        <div class="amb-orb amb-orb--1"></div>
+        <div class="amb-orb amb-orb--2"></div>
+        <div class="amb-orb amb-orb--3"></div>
+        <div class="amb-stripe"></div>
+      </div>
+
+      <!-- Main Premium Card -->
+      <div class="oh-card">
+
+        <!-- Glow border -->
+        <div class="oh-card__glow" aria-hidden="true"></div>
+
+        <!-- Card Header -->
+        <div class="oh-card__header">
+          <div class="oh-header__inner">
+            <div class="oh-header__left">
+              <div class="oh-brand">
+                <div class="oh-brand__icon">
+                  <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M8 40C8 40 14 18 32 13C32 13 35 27 24 34C17 38 8 40 8 40Z" fill="#A8B84B" opacity="0.9"/>
+                    <path d="M8 40C11 32 16 27 24 25" stroke="#DFE9B0" stroke-width="1.8" stroke-linecap="round"/>
+                  </svg>
+                </div>
+                <div class="oh-brand__rings" aria-hidden="true">
+                  <span></span><span></span>
+                </div>
+              </div>
+              <div class="oh-header__text">
+                <p class="oh-header__eyebrow">
+                  <span class="eyebrow-dash"></span>
+                  MODIFICATION TRACTEUR
+                  <span class="eyebrow-dash"></span>
+                </p>
+                <h2 class="oh-header__title">Modifier le tracteur</h2>
+                <p class="header-subtitle">Mettez à jour les informations du tracteur</p>
+              </div>
+            </div>
+          </div>
+          <div class="oh-header__rule" aria-hidden="true"></div>
+        </div>
+
+        <!-- Card Body -->
+        <div class="oh-card__body">
+
+          <!-- Chargement -->
+          <div *ngIf="isLoading" class="loading-container">
+            <div class="spinner"></div>
+            <p>Chargement des informations...</p>
+          </div>
+
+          <!-- Message de succès -->
+          <div *ngIf="successMessage" class="oh-success">
+            <i class="bi bi-check-circle-fill me-2"></i> {{ successMessage }}
+          </div>
+
+          <!-- Message d'erreur -->
+          <div *ngIf="errorMessage" class="oh-error">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> {{ errorMessage }}
+          </div>
+
+          <form *ngIf="!isLoading" [formGroup]="tracteurForm" (ngSubmit)="onSubmit()" class="oh-form">
+
+            <!-- Informations techniques -->
+            <div class="form-section">
+              <h3 class="section-title">
+                <i class="bi bi-tools"></i>
+                Informations techniques
+              </h3>
+
+              <div class="form-row">
+                <!-- Puissance moteur -->
+                <div class="form-group">
+                  <label class="form-label">Puissance moteur (CV) <span class="required">*</span></label>
+                  <input type="number" class="form-control" formControlName="puissanceMoteur"
+                         [class.is-invalid]="tracteurForm.get('puissanceMoteur')?.invalid && tracteurForm.get('puissanceMoteur')?.touched">
+                  <div class="invalid-feedback" *ngIf="tracteurForm.get('puissanceMoteur')?.invalid && tracteurForm.get('puissanceMoteur')?.touched">
+                    Puissance requise (min 1)
+                  </div>
+                </div>
+
+                <!-- Consommation carburant -->
+                <div class="form-group">
+                  <label class="form-label">Consommation (L/100km) <span class="required">*</span></label>
+                  <input type="number" class="form-control" formControlName="consommationCarburant"
+                         [class.is-invalid]="tracteurForm.get('consommationCarburant')?.invalid && tracteurForm.get('consommationCarburant')?.touched">
+                  <div class="invalid-feedback" *ngIf="tracteurForm.get('consommationCarburant')?.invalid && tracteurForm.get('consommationCarburant')?.touched">
+                    Consommation requise (min 0.1)
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <!-- Kilométrage -->
+                <div class="form-group">
+                  <label class="form-label">Kilométrage (km) <span class="required">*</span></label>
+                  <input type="number" class="form-control" formControlName="kilometrage"
+                         [class.is-invalid]="tracteurForm.get('kilometrage')?.invalid && tracteurForm.get('kilometrage')?.touched">
+                  <div class="invalid-feedback" *ngIf="tracteurForm.get('kilometrage')?.invalid && tracteurForm.get('kilometrage')?.touched">
+                    Kilométrage requis (min 0)
+                  </div>
+                </div>
+
+                <!-- Type carburant -->
+                <div class="form-group">
+                  <label class="form-label">Type de carburant <span class="required">*</span></label>
+                  <select class="form-control" formControlName="typeCarburant"
+                          [class.is-invalid]="tracteurForm.get('typeCarburant')?.invalid && tracteurForm.get('typeCarburant')?.touched">
+                    <option value="">-- Sélectionner --</option>
+                    <option value="DIESEL">Diesel</option>
+                    <option value="ESSENCE">Essence</option>
+                    <option value="ELECTRIQUE">Électrique</option>
+                    <option value="HYBRIDE">Hybride</option>
+                  </select>
+                  <div class="invalid-feedback" *ngIf="tracteurForm.get('typeCarburant')?.invalid && tracteurForm.get('typeCarburant')?.touched">
+                    Type de carburant requis
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <!-- Remorque attachée -->
+                <div class="form-group">
+                  <label class="form-label">
+                    <input type="checkbox" formControlName="remorqueAttachee">
+                    Remorque attachée
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <!-- Informations générales -->
+            <div class="form-section">
+              <h3 class="section-title">
+                <i class="bi bi-info-circle"></i>
+                Informations générales
+              </h3>
+
+              <div class="form-row">
+                <!-- Marque -->
+                <div class="form-group">
+                  <label class="form-label">Marque</label>
+                  <input type="text" class="form-control" formControlName="marque">
+                </div>
+
+                <!-- Modèle -->
+                <div class="form-group">
+                  <label class="form-label">Modèle</label>
+                  <input type="text" class="form-control" formControlName="modele">
+                </div>
+              </div>
+
+              <div class="form-row">
+                <!-- Année -->
+                <div class="form-group">
+                  <label class="form-label">Année</label>
+                  <input type="number" class="form-control" formControlName="annee"
+                         [attr.min]="1990"
+                         [attr.max]="new Date().getFullYear()"
+                         [class.is-invalid]="tracteurForm.get('annee')?.invalid && tracteurForm.get('annee')?.touched">
+                </div>
+
+                <!-- Couleur -->
+                <div class="form-group">
+                  <label class="form-label">Couleur</label>
+                  <input type="color" class="form-control" formControlName="couleur">
+                </div>
+              </div>
+
+              <div class="form-row">
+                <!-- Maintenance -->
+                <div class="form-group">
+                  <label class="form-label">
+                    <input type="checkbox" formControlName="enMaintenance">
+                    En maintenance
+                  </label>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <!-- Description -->
+                <div class="form-group">
+                  <label class="form-label">Description</label>
+                  <textarea class="form-control" formControlName="description" rows="3"></textarea>
+                </div>
+              </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="form-actions">
+              <button type="button" class="btn-secondary" (click)="cancel()">
+                <i class="bi bi-x-lg"></i>
+                Annuler
+              </button>
+              <button type="submit" class="btn-primary" [disabled]="tracteurForm.invalid || isLoading">
+                <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2"></span>
+                <i class="bi bi-check-lg me-2"></i>
+                Modifier tracteur
+              </button>
+            </div>
+
+          </form>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>

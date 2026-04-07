@@ -1,0 +1,167 @@
+<!-- src/app/ressources/bennes/ajouter-benne/ajouter-benne.html -->
+<div class="app-layout">
+
+  <!-- Sidebar Component -->
+  <app-sidebar
+    [isCollapsed]="isSidebarCollapsed"
+    (toggleSidebar)="toggleSidebar()"
+    [userRole]="userRole">
+  </app-sidebar>
+
+  <!-- Main Content -->
+  <main class="main-content"
+        [class.sidebar-collapsed]="isSidebarCollapsed"
+        [class.sidebar-open]="!isSidebarCollapsed">
+
+    <!-- Mobile Menu Toggle Button -->
+    <button class="mobile-menu-toggle" (click)="toggleSidebar()" *ngIf="isMobile">
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M3 12H21M3 6H21M3 18H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </button>
+
+    <div class="oh-scene">
+
+      <!-- Ambient soft orbs -->
+      <div class="oh-ambient" aria-hidden="true">
+        <div class="amb-orb amb-orb--1"></div>
+        <div class="amb-orb amb-orb--2"></div>
+        <div class="amb-orb amb-orb--3"></div>
+        <div class="amb-stripe"></div>
+      </div>
+
+      <!-- Main Premium Card -->
+      <div class="oh-card">
+
+        <!-- Glow border -->
+        <div class="oh-card__glow" aria-hidden="true"></div>
+
+        <!-- Card Header -->
+        <div class="oh-card__header">
+          <div class="oh-header__inner">
+            <div class="oh-header__left">
+              <div class="oh-brand">
+                <div class="oh-brand__icon">
+                  <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M8 40C8 40 14 18 32 13C32 13 35 27 24 34C17 38 8 40 8 40Z" fill="#A8B84B" opacity="0.9"/>
+                    <path d="M8 40C11 32 16 27 24 25" stroke="#DFE9B0" stroke-width="1.8" stroke-linecap="round"/>
+                  </svg>
+                </div>
+                <div class="oh-brand__rings" aria-hidden="true">
+                  <span></span><span></span>
+                </div>
+              </div>
+              <div class="oh-header__text">
+                <p class="oh-header__eyebrow">
+                  <span class="eyebrow-dash"></span>
+                  AJOUT BENNE
+                  <span class="eyebrow-dash"></span>
+                </p>
+                <h2 class="oh-header__title">Créer une nouvelle benne</h2>
+                <p class="header-subtitle">Ajoutez un nouveau conteneur de récolte</p>
+              </div>
+            </div>
+          </div>
+          <div class="oh-header__rule" aria-hidden="true"></div>
+        </div>
+
+        <!-- Card Body -->
+        <div class="oh-card__body">
+
+          <!-- Message de succès -->
+          <div *ngIf="successMessage" class="oh-success">
+            <i class="bi bi-check-circle-fill me-2"></i> {{ successMessage }}
+          </div>
+
+          <!-- Message d'erreur -->
+          <div *ngIf="errorMessage" class="oh-error">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> {{ errorMessage }}
+          </div>
+
+          <form [formGroup]="benneForm" (ngSubmit)="onSubmit()" class="oh-form">
+
+            <!-- Informations de la benne -->
+            <div class="form-section">
+              <h3 class="section-title">
+                <i class="bi bi-box-seam"></i>
+                Informations de la benne
+              </h3>
+
+              <div class="form-row">
+                <!-- Capacité Max -->
+                <div class="form-group">
+                  <label class="form-label">Capacité maximale (kg) <span class="required">*</span></label>
+                  <input type="number" class="form-control" formControlName="capaciteMax"
+                         placeholder="1000"
+                         [class.is-invalid]="benneForm.get('capaciteMax')?.invalid && benneForm.get('capaciteMax')?.touched">
+                  <div class="invalid-feedback" *ngIf="benneForm.get('capaciteMax')?.invalid && benneForm.get('capaciteMax')?.touched">
+                    <span *ngIf="benneForm.get('capaciteMax')?.errors?.['required']">Capacité requise</span>
+                    <span *ngIf="benneForm.get('capaciteMax')?.errors?.['min']">Minimum 100 kg</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <!-- Type de matériau -->
+                <div class="form-group">
+                  <label class="form-label">Type de matériau <span class="required">*</span></label>
+                  <select class="form-control" formControlName="typeMateriau"
+                          [class.is-invalid]="benneForm.get('typeMateriau')?.invalid && benneForm.get('typeMateriau')?.touched">
+                    <option value="">-- Sélectionner --</option>
+                    <option *ngFor="let m of materiaux" [value]="m">{{ m }}</option>
+                  </select>
+                  <div class="invalid-feedback" *ngIf="benneForm.get('typeMateriau')?.invalid && benneForm.get('typeMateriau')?.touched">
+                    Type de matériau requis
+                  </div>
+                </div>
+
+                <!-- Usure -->
+                <div class="form-group">
+                  <label class="form-label">Usure (%) <span class="required">*</span></label>
+                  <input type="number" class="form-control" formControlName="usure" min="0" max="100"
+                         placeholder="0"
+                         [class.is-invalid]="benneForm.get('usure')?.invalid && benneForm.get('usure')?.touched">
+                  <div class="invalid-feedback" *ngIf="benneForm.get('usure')?.invalid && benneForm.get('usure')?.touched">
+                    Usure entre 0 et 100%
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <!-- Couleur -->
+                <div class="form-group">
+                  <label class="form-label">Couleur <span class="required">*</span></label>
+                  <input type="color" class="form-control" formControlName="couleur"
+                         [class.is-invalid]="benneForm.get('couleur')?.invalid && benneForm.get('couleur')?.touched">
+                </div>
+              </div>
+
+              <div class="form-row">
+                <!-- Description -->
+                <div class="form-group">
+                  <label class="form-label">Description</label>
+                  <textarea class="form-control" formControlName="description" rows="3"
+                            placeholder="Notes additionnelles sur la benne..."></textarea>
+                </div>
+              </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="form-actions">
+              <button type="button" class="btn-secondary" (click)="cancel()">
+                <i class="bi bi-x-lg"></i>
+                Annuler
+              </button>
+              <button type="submit" class="btn-primary" [disabled]="benneForm.invalid || isLoading">
+                <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2"></span>
+                <i class="bi bi-check-lg me-2"></i>
+                Ajouter benne
+              </button>
+            </div>
+
+          </form>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>

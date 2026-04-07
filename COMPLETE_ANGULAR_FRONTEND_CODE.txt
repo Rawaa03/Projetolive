@@ -1,0 +1,1260 @@
+================================================================================
+COMPLETE ANGULAR FRONTEND RESOURCE MANAGEMENT CODE
+================================================================================
+
+PROJECT STRUCTURE:
+src/app/
+├── models/
+│   ├── ressource.ts
+│   ├── benne.ts
+│   └── tracteur.ts
+├── services/
+│   ├── ressource.ts
+│   ├── benne.ts
+│   └── tracteur.ts
+└── resources/
+    ├── bennes/
+    │   ├── ajouter-benne/
+    │   │   ├── ajouter-benne.ts
+    │   │   ├── ajouter-benne.html
+    │   │   └── ajouter-benne.css
+    │   ├── liste-bennes/
+    │   │   ├── liste-bennes.ts
+    │   │   ├── liste-bennes.html
+    │   │   └── liste-bennes.css
+    │   └── modifier-benne/
+    │       ├── modifier-benne.ts
+    │       ├── modifier-benne.html
+    │       └── modifier-benne.css
+    └── tracteurs/
+        ├── ajouter-tracteur/
+        │   ├── ajouter-tracteur.ts
+        │   ├── ajouter-tracteur.html
+        │   └── ajouter-tracteur.css
+        ├── liste-tracteurs/
+        │   ├── liste-tracteurs.ts
+        │   ├── liste-tracteurs.html
+        │   └── liste-tracteurs.css
+        └── modifier-tracteur/
+            ├── modifier-tracteur.ts
+            ├── modifier-tracteur.html
+            └── modifier-tracteur.css
+
+================================================================================
+MODELS - models/ressource.ts
+================================================================================
+
+export type RessourceType = 'BENNE' | 'TRACTEUR';
+export type RessourceStatut = 'DISPONIBLE' | 'EN_USE' | 'MAINTENANCE' | 'HORS_SERVICE';
+
+export interface Ressource {
+  id?: string;
+  type: RessourceType;
+  statut: RessourceStatut;
+  dateCreation: Date;
+  dateDerniereMaintenance?: Date;
+  tourneeId?: string;
+}
+
+================================================================================
+MODELS - models/benne.ts
+================================================================================
+
+import { Ressource, RessourceType, RessourceStatut } from './ressource';
+
+export interface Benne extends Ressource {
+  type: 'BENNE';
+  capaciteMax: number;
+  chargeActuelle: number;
+  pourcentageRemplissage: number;
+  typeMateriau: string;
+  tracteurId?: string;
+  dateDernierChargement?: Date;
+  dateDerniereVidange?: Date;
+  usure: number;
+  couleur?: string;
+  description?: string;
+}
+
+// Interface pour la création (sans les propriétés calculées ou générées par le backend)
+export interface BenneCreation {
+  capaciteMax: number;
+  typeMateriau: string;
+  usure: number;
+  couleur?: string;
+  description?: string;
+}
+
+================================================================================
+MODELS - models/tracteur.ts
+================================================================================
+
+import { Ressource, RessourceType, RessourceStatut } from './ressource';
+
+export interface Tracteur extends Ressource {
+  type: 'TRACTEUR';
+  puissanceMoteur: number;
+  consommationCarburant: number;
+  kilometrage: number;
+  conducteurId?: string;
+  remorqueAttachee: boolean;
+  dateDernierPlein?: Date;
+  typeCarburant: string;
+  marque?: string;
+  modele?: string;
+  annee?: number;
+  couleur?: string;
+  description?: string;
+}
+
+// Interface pour la création (sans les propriétés calculées ou générées par le backend)
+export interface TracteurCreation {
+  puissanceMoteur: number;
+  consommationCarburant: number;
+  kilometrage: number;
+  typeCarburant: string;
+  remorqueAttachee: boolean;
+  marque?: string;
+  modele?: string;
+  annee?: number;
+  couleur?: string;
+  description?: string;
+}
+
+================================================================================
+SERVICES - services/ressource.ts
+================================================================================
+
+import { Injectable } from '@angular/core';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { Observable, throwError } from 'rxjs';
+import { catchError } from 'rxjs/operators';
+import { Ressource, RessourceType, RessourceStatut } from '../models/ressource';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class RessourceService {
+  private apiUrl = 'http://localhost:8080/api/ressources';
+
+  constructor(private http: HttpClient) { }
+
+  getAll(): Observable<Ressource[]> {
+    return this.http.get<Ressource[]>(this.apiUrl).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  getById(id: string): Observable<Ressource> {
+    return this.http.get<Ressource>(`${this.apiUrl}/${id}`).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  create(ressource: Partial<Ressource>): Observable<Ressource> {
+    return this.http.post<Ressource>(this.apiUrl, ressource).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  update(id: string, ressource: Partial<Ressource>): Observable<Ressource> {
+    return this.http.put<Ressource>(`${this.apiUrl}/${id}`, ressource).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  delete(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  getByType(type: RessourceType): Observable<Ressource[]> {
+    return this.http.get<Ressource[]>(`${this.apiUrl}/type/${type}`).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  getByStatut(statut: RessourceStatut): Observable<Ressource[]> {
+    return this.http.get<Ressource[]>(`${this.apiUrl}/statut/${statut}`).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  getAvailable(): Observable<Ressource[]> {
+    return this.http.get<Ressource[]>(`${this.apiUrl}/available`).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  checkAvailability(id: string, startDate: string, endDate: string): Observable<boolean> {
+    return this.http.get<boolean>(`${this.apiUrl}/${id}/available?startDate=${startDate}&endDate=${endDate}`).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  assignToTournee(ressourceId: string, tourneeId: string): Observable<Ressource> {
+    return this.http.post<Ressource>(`${this.apiUrl}/${ressourceId}/assign-tour/${tourneeId}`, {}).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  unassignFromTournee(ressourceId: string): Observable<Ressource> {
+    return this.http.delete<Ressource>(`${this.apiUrl}/${ressourceId}/unassign-tour`).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  private handleError(error: HttpErrorResponse): Observable<never> {
+    let errorMessage = 'Une erreur est survenue';
+    if (error.error instanceof ErrorEvent) {
+      errorMessage = `Erreur: ${error.error.message}`;
+    } else {
+      errorMessage = `Code: ${error.status}\nMessage: ${error.message}`;
+    }
+    console.error(errorMessage);
+    return throwError(() => new Error(errorMessage));
+  }
+}
+
+================================================================================
+SERVICES - services/benne.ts
+================================================================================
+
+import { Injectable } from '@angular/core';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { Observable, throwError } from 'rxjs';
+import { catchError } from 'rxjs/operators';
+import { Benne, BenneCreation } from '../models/benne';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class BenneService {
+  private apiUrl = 'http://localhost:8080/api/ressources/bennes';
+
+  constructor(private http: HttpClient) { }
+
+  getAll(): Observable<Benne[]> {
+    return this.http.get<Benne[]>(this.apiUrl).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  getById(id: string): Observable<Benne> {
+    return this.http.get<Benne>(`${this.apiUrl}/${id}`).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  create(benne: BenneCreation): Observable<Benne> {
+    // Le backend va compléter les propriétés manquantes
+    return this.http.post<Benne>(this.apiUrl, benne).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  update(id: string, benne: Partial<Benne>): Observable<Benne> {
+    return this.http.put<Benne>(`${this.apiUrl}/${id}`, benne).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  delete(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  chargerBenne(id: string, quantite: number): Observable<Benne> {
+    return this.http.post<Benne>(`${this.apiUrl}/${id}/charger`, { quantite }).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  viderBenne(id: string): Observable<Benne> {
+    return this.http.post<Benne>(`${this.apiUrl}/${id}/vider`, {}).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  assignTracteur(benneId: string, tracteurId: string): Observable<Benne> {
+    return this.http.post<Benne>(`${this.apiUrl}/${benneId}/assign-tracteur/${tracteurId}`, {}).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  unassignTracteur(benneId: string): Observable<Benne> {
+    return this.http.delete<Benne>(`${this.apiUrl}/${benneId}/unassign-tracteur`).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  startMaintenance(id: string): Observable<Benne> {
+    return this.http.post<Benne>(`${this.apiUrl}/${id}/maintenance`, {}).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  endMaintenance(id: string): Observable<Benne> {
+    return this.http.post<Benne>(`${this.apiUrl}/${id}/maintenance/end`, {}).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  getFullBennes(): Observable<Benne[]> {
+    return this.http.get<Benne[]>(`${this.apiUrl}/full`).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  getStats(id: string): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/${id}/stats`).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  private handleError(error: HttpErrorResponse): Observable<never> {
+    let errorMessage = 'Une erreur est survenue avec les bennes';
+    if (error.error instanceof ErrorEvent) {
+      errorMessage = `Erreur: ${error.error.message}`;
+    } else {
+      errorMessage = `Code: ${error.status}\nMessage: ${error.message}`;
+    }
+    console.error(errorMessage);
+    return throwError(() => new Error(errorMessage));
+  }
+}
+
+================================================================================
+SERVICES - services/tracteur.ts
+================================================================================
+
+import { Injectable } from '@angular/core';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { Observable, throwError } from 'rxjs';
+import { catchError } from 'rxjs/operators';
+import { Tracteur, TracteurCreation } from '../models/tracteur';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class TracteurService {
+  private apiUrl = 'http://localhost:8080/api/ressources/tracteurs';
+
+  constructor(private http: HttpClient) { }
+
+  getAll(): Observable<Tracteur[]> {
+    return this.http.get<Tracteur[]>(this.apiUrl).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  getById(id: string): Observable<Tracteur> {
+    return this.http.get<Tracteur>(`${this.apiUrl}/${id}`).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  create(tracteur: TracteurCreation): Observable<Tracteur> {
+    // Le backend va compléter les propriétés manquantes
+    return this.http.post<Tracteur>(this.apiUrl, tracteur).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  update(id: string, tracteur: Partial<Tracteur>): Observable<Tracteur> {
+    return this.http.put<Tracteur>(`${this.apiUrl}/${id}`, tracteur).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  delete(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  getAvailable(): Observable<Tracteur[]> {
+    return this.http.get<Tracteur[]>(`${this.apiUrl}/available`).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  getSpecs(id: string): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/${id}/specs`).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  updateKilometrage(id: string, kilometrage: number): Observable<Tracteur> {
+    return this.http.put<Tracteur>(`${this.apiUrl}/${id}/update-mileage`, { kilometrage }).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  estimateConsumption(id: string, distance: number): Observable<number> {
+    return this.http.post<number>(`${this.apiUrl}/${id}/consumption-estimate`, { distance }).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  assignConducteur(tracteurId: string, conducteurId: string): Observable<Tracteur> {
+    return this.http.post<Tracteur>(`${this.apiUrl}/${tracteurId}/assign-driver/${conducteurId}`, {}).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  unassignConducteur(tracteurId: string): Observable<Tracteur> {
+    return this.http.delete<Tracteur>(`${this.apiUrl}/${tracteurId}/unassign-driver`).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  startMaintenance(id: string): Observable<Tracteur> {
+    return this.http.post<Tracteur>(`${this.apiUrl}/${id}/maintenance`, {}).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  endMaintenance(id: string): Observable<Tracteur> {
+    return this.http.post<Tracteur>(`${this.apiUrl}/${id}/maintenance/end`, {}).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  getWithTrailer(): Observable<Tracteur[]> {
+    return this.http.get<Tracteur[]>(`${this.apiUrl}/with-trailer`).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  getStats(id: string): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/${id}/stats`).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  private handleError(error: HttpErrorResponse): Observable<never> {
+    let errorMessage = 'Une erreur est survenue avec les tracteurs';
+    if (error.error instanceof ErrorEvent) {
+      errorMessage = `Erreur: ${error.error.message}`;
+    } else {
+      errorMessage = `Code: ${error.status}\nMessage: ${error.message}`;
+    }
+    console.error(errorMessage);
+    return throwError(() => new Error(errorMessage));
+  }
+}
+
+================================================================================
+COMPONENTS - resources/bennes/ajouter-benne/ajouter-benne.ts
+================================================================================
+
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatButtonModule } from '@angular/material/button';
+import { MatSelectModule } from '@angular/material/select';
+import { MatIconModule } from '@angular/material/icon';
+
+import { BenneService } from '../../../services/benne';
+import { BenneCreation } from '../../../models/benne';
+
+@Component({
+  selector: 'app-ajouter-benne',
+  standalone: true,
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatButtonModule,
+    MatSelectModule,
+    MatIconModule
+  ],
+  templateUrl: './ajouter-benne.html',
+  styleUrls: ['./ajouter-benne.css']
+})
+export class AjouterBenneComponent implements OnInit {
+  form!: FormGroup;
+  loading = false;
+  error: string | null = null;
+  success = false;
+
+  materiauxOptions = [
+    { value: 'PLASTIQUE', label: 'Plastique' },
+    { value: 'METAL', label: 'Métal' },
+    { value: 'BOIS', label: 'Bois' }
+  ];
+
+  constructor(
+    private fb: FormBuilder,
+    private benneService: BenneService,
+    private router: Router
+  ) {}
+
+  ngOnInit(): void {
+    this.initializeForm();
+  }
+
+  initializeForm(): void {
+    this.form = this.fb.group({
+      capaciteMax: ['', [Validators.required, Validators.min(100)]],
+      typeMateriau: ['', Validators.required],
+      usure: ['0', [Validators.required, Validators.min(0), Validators.max(100)]],
+      couleur: [''],
+      description: ['']
+    });
+  }
+
+  onSubmit(): void {
+    if (this.form.invalid) {
+      this.error = 'Veuillez remplir tous les champs requis correctement';
+      return;
+    }
+
+    this.loading = true;
+    const benneData: BenneCreation = this.form.value;
+
+    this.benneService.create(benneData).subscribe({
+      next: () => {
+        this.success = true;
+        this.loading = false;
+        setTimeout(() => {
+          this.router.navigate(['/resources/bennes']);
+        }, 1500);
+      },
+      error: (err) => {
+        this.error = 'Erreur lors de la création de la benne';
+        console.error(err);
+        this.loading = false;
+      }
+    });
+  }
+
+  cancel(): void {
+    this.router.navigate(['/resources/bennes']);
+  }
+}
+
+================================================================================
+COMPONENTS - resources/bennes/liste-bennes/liste-bennes.ts
+================================================================================
+
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { MatTableModule } from '@angular/material/table';
+import { MatButtonModule } from '@angular/material/button';
+import { MatInputModule } from '@angular/material/input';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatPaginatorModule } from '@angular/material/paginator';
+import { MatSortModule } from '@angular/material/sort';
+import { MatIconModule } from '@angular/material/icon';
+import { MatSelectModule } from '@angular/material/select';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { RouterModule } from '@angular/router';
+
+import { BenneService } from '../../../services/benne';
+import { Benne } from '../../../models/benne';
+
+@Component({
+  selector: 'app-liste-bennes',
+  standalone: true,
+  imports: [
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    MatTableModule,
+    MatButtonModule,
+    MatInputModule,
+    MatFormFieldModule,
+    MatPaginatorModule,
+    MatSortModule,
+    MatIconModule,
+    MatSelectModule,
+    MatChipsModule,
+    MatProgressBarModule,
+    RouterModule
+  ],
+  templateUrl: './liste-bennes.html',
+  styleUrls: ['./liste-bennes.css']
+})
+export class ListeBennesComponent implements OnInit {
+  bennes: Benne[] = [];
+  filteredBennes: Benne[] = [];
+  loading = true;
+  error: string | null = null;
+  
+  // Filtres
+  searchText = '';
+  statutFilter = '';
+  materiauxFilter = '';
+  
+  displayedColumns: string[] = ['id', 'capaciteMax', 'chargeActuelle', 'pourcentageRemplissage', 'statut', 'typeMateriau', 'actions'];
+
+  constructor(private benneService: BenneService) {}
+
+  ngOnInit(): void {
+    this.loadBennes();
+  }
+
+  loadBennes(): void {
+    this.loading = true;
+    this.benneService.getAll().subscribe({
+      next: (data) => {
+        this.bennes = data;
+        this.applyFilters();
+        this.loading = false;
+      },
+      error: (err) => {
+        this.error = 'Erreur lors du chargement des bennes';
+        console.error(err);
+        this.loading = false;
+      }
+    });
+  }
+
+  applyFilters(): void {
+    this.filteredBennes = this.bennes.filter(benne => {
+      const searchMatch = 
+        (benne.id?.toLowerCase().includes(this.searchText.toLowerCase()) || false) ||
+        (benne.typeMateriau?.toLowerCase().includes(this.searchText.toLowerCase()) || false);
+      
+      const statutMatch = !this.statutFilter || benne.statut === this.statutFilter;
+      const materiauxMatch = !this.materiauxFilter || benne.typeMateriau === this.materiauxFilter;
+      
+      return searchMatch && statutMatch && materiauxMatch;
+    });
+  }
+
+  onSearchChange(): void {
+    this.applyFilters();
+  }
+
+  onFilterChange(): void {
+    this.applyFilters();
+  }
+
+  deleteBenne(id: string | undefined): void {
+    if (!id) return;
+    
+    if (confirm('Êtes-vous sûr de vouloir supprimer cette benne?')) {
+      this.benneService.delete(id).subscribe({
+        next: () => {
+          this.loadBennes();
+        },
+        error: (err) => {
+          this.error = 'Erreur lors de la suppression';
+          console.error(err);
+        }
+      });
+    }
+  }
+
+  getStatutColor(statut: string): string {
+    const colors: { [key: string]: string } = {
+      'DISPONIBLE': 'success',
+      'EN_USE': 'warning',
+      'MAINTENANCE': 'info',
+      'HORS_SERVICE': 'danger'
+    };
+    return colors[statut] || 'secondary';
+  }
+
+  getStatutIcon(statut: string): string {
+    const icons: { [key: string]: string } = {
+      'DISPONIBLE': 'check_circle',
+      'EN_USE': 'directions_run',
+      'MAINTENANCE': 'build',
+      'HORS_SERVICE': 'cancel'
+    };
+    return icons[statut] || 'help';
+  }
+}
+
+================================================================================
+COMPONENTS - resources/bennes/modifier-benne/modifier-benne.ts
+================================================================================
+
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatButtonModule } from '@angular/material/button';
+import { MatSelectModule } from '@angular/material/select';
+import { MatIconModule } from '@angular/material/icon';
+
+import { BenneService } from '../../../services/benne';
+import { Benne } from '../../../models/benne';
+
+@Component({
+  selector: 'app-modifier-benne',
+  standalone: true,
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatButtonModule,
+    MatSelectModule,
+    MatIconModule
+  ],
+  templateUrl: './modifier-benne.html',
+  styleUrls: ['./modifier-benne.css']
+})
+export class ModifierBenneComponent implements OnInit {
+  form!: FormGroup;
+  loading = false;
+  loadingData = true;
+  error: string | null = null;
+  success = false;
+  benneId: string | null = null;
+  benne: Benne | null = null;
+
+  materiauxOptions = [
+    { value: 'PLASTIQUE', label: 'Plastique' },
+    { value: 'METAL', label: 'Métal' },
+    { value: 'BOIS', label: 'Bois' }
+  ];
+
+  statutOptions = [
+    { value: 'DISPONIBLE', label: 'Disponible' },
+    { value: 'EN_USE', label: 'En Utilisation' },
+    { value: 'MAINTENANCE', label: 'Maintenance' },
+    { value: 'HORS_SERVICE', label: 'Hors Service' }
+  ];
+
+  constructor(
+    private fb: FormBuilder,
+    private benneService: BenneService,
+    private route: ActivatedRoute,
+    private router: Router
+  ) {}
+
+  ngOnInit(): void {
+    this.route.params.subscribe(params => {
+      this.benneId = params['id'];
+      if (this.benneId) {
+        this.loadBenne();
+      }
+    });
+    this.initializeForm();
+  }
+
+  initializeForm(): void {
+    this.form = this.fb.group({
+      capaciteMax: ['', [Validators.required, Validators.min(100)]],
+      typeMateriau: ['', Validators.required],
+      usure: ['0', [Validators.required, Validators.min(0), Validators.max(100)]],
+      couleur: [''],
+      description: [''],
+      statut: ['', Validators.required]
+    });
+  }
+
+  loadBenne(): void {
+    if (!this.benneId) return;
+
+    this.benneService.getById(this.benneId).subscribe({
+      next: (data) => {
+        this.benne = data;
+        this.form.patchValue({
+          capaciteMax: data.capaciteMax,
+          typeMateriau: data.typeMateriau,
+          usure: data.usure,
+          couleur: data.couleur,
+          description: data.description,
+          statut: data.statut
+        });
+        this.loadingData = false;
+      },
+      error: (err) => {
+        this.error = 'Erreur lors du chargement de la benne';
+        console.error(err);
+        this.loadingData = false;
+      }
+    });
+  }
+
+  onSubmit(): void {
+    if (this.form.invalid) {
+      this.error = 'Veuillez remplir tous les champs requis correctement';
+      return;
+    }
+
+    if (!this.benneId) {
+      this.error = 'ID de la benne non trouvé';
+      return;
+    }
+
+    this.loading = true;
+    const updates = this.form.value;
+
+    this.benneService.update(this.benneId, updates).subscribe({
+      next: () => {
+        this.success = true;
+        this.loading = false;
+        setTimeout(() => {
+          this.router.navigate(['/resources/bennes']);
+        }, 1500);
+      },
+      error: (err) => {
+        this.error = 'Erreur lors de la mise à jour de la benne';
+        console.error(err);
+        this.loading = false;
+      }
+    });
+  }
+
+  cancel(): void {
+    this.router.navigate(['/resources/bennes']);
+  }
+}
+
+================================================================================
+COMPONENTS - resources/tracteurs/ajouter-tracteur/ajouter-tracteur.ts
+================================================================================
+
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatButtonModule } from '@angular/material/button';
+import { MatSelectModule } from '@angular/material/select';
+import { MatIconModule } from '@angular/material/icon';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+
+import { TracteurService } from '../../../services/tracteur';
+import { TracteurCreation } from '../../../models/tracteur';
+
+@Component({
+  selector: 'app-ajouter-tracteur',
+  standalone: true,
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatButtonModule,
+    MatSelectModule,
+    MatIconModule,
+    MatCheckboxModule
+  ],
+  templateUrl: './ajouter-tracteur.html',
+  styleUrls: ['./ajouter-tracteur.css']
+})
+export class AjouterTracteurComponent implements OnInit {
+  form!: FormGroup;
+  loading = false;
+  error: string | null = null;
+  success = false;
+
+  carburantOptions = [
+    { value: 'DIESEL', label: 'Diesel' },
+    { value: 'ESSENCE', label: 'Essence' },
+    { value: 'ELECTRIQUE', label: 'Électrique' }
+  ];
+
+  constructor(
+    private fb: FormBuilder,
+    private tracteurService: TracteurService,
+    private router: Router
+  ) {}
+
+  ngOnInit(): void {
+    this.initializeForm();
+  }
+
+  initializeForm(): void {
+    this.form = this.fb.group({
+      marque: ['', Validators.required],
+      modele: ['', Validators.required],
+      annee: ['', [Validators.required, Validators.min(1950), Validators.max(new Date().getFullYear() + 1)]],
+      puissanceMoteur: ['', [Validators.required, Validators.min(1)]],
+      typeCarburant: ['', Validators.required],
+      consommationCarburant: ['', [Validators.required, Validators.min(0)]],
+      kilometrage: ['0', [Validators.required, Validators.min(0)]],
+      remorqueAttachee: [false],
+      couleur: [''],
+      description: ['']
+    });
+  }
+
+  onSubmit(): void {
+    if (this.form.invalid) {
+      this.error = 'Veuillez remplir tous les champs requis correctement';
+      return;
+    }
+
+    this.loading = true;
+    const tracteurData: TracteurCreation = this.form.value;
+
+    this.tracteurService.create(tracteurData).subscribe({
+      next: () => {
+        this.success = true;
+        this.loading = false;
+        setTimeout(() => {
+          this.router.navigate(['/resources/tracteurs']);
+        }, 1500);
+      },
+      error: (err) => {
+        this.error = 'Erreur lors de la création du tracteur';
+        console.error(err);
+        this.loading = false;
+      }
+    });
+  }
+
+  cancel(): void {
+    this.router.navigate(['/resources/tracteurs']);
+  }
+}
+
+================================================================================
+COMPONENTS - resources/tracteurs/liste-tracteurs/liste-tracteurs.ts
+================================================================================
+
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { MatTableModule } from '@angular/material/table';
+import { MatButtonModule } from '@angular/material/button';
+import { MatInputModule } from '@angular/material/input';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatPaginatorModule } from '@angular/material/paginator';
+import { MatSortModule } from '@angular/material/sort';
+import { MatIconModule } from '@angular/material/icon';
+import { MatSelectModule } from '@angular/material/select';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { RouterModule } from '@angular/router';
+
+import { TracteurService } from '../../../services/tracteur';
+import { Tracteur } from '../../../models/tracteur';
+
+@Component({
+  selector: 'app-liste-tracteurs',
+  standalone: true,
+  imports: [
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    MatTableModule,
+    MatButtonModule,
+    MatInputModule,
+    MatFormFieldModule,
+    MatPaginatorModule,
+    MatSortModule,
+    MatIconModule,
+    MatSelectModule,
+    MatChipsModule,
+    MatProgressBarModule,
+    RouterModule
+  ],
+  templateUrl: './liste-tracteurs.html',
+  styleUrls: ['./liste-tracteurs.css']
+})
+export class ListeTracteursComponent implements OnInit {
+  tracteurs: Tracteur[] = [];
+  filteredTracteurs: Tracteur[] = [];
+  loading = true;
+  error: string | null = null;
+  
+  // Filtres
+  searchText = '';
+  statutFilter = '';
+  carburantFilter = '';
+  
+  displayedColumns: string[] = ['id', 'marque', 'modele', 'puissanceMoteur', 'typeCarburant', 'kilometrage', 'statut', 'actions'];
+
+  constructor(private tracteurService: TracteurService) {}
+
+  ngOnInit(): void {
+    this.loadTracteurs();
+  }
+
+  loadTracteurs(): void {
+    this.loading = true;
+    this.tracteurService.getAll().subscribe({
+      next: (data) => {
+        this.tracteurs = data;
+        this.applyFilters();
+        this.loading = false;
+      },
+      error: (err) => {
+        this.error = 'Erreur lors du chargement des tracteurs';
+        console.error(err);
+        this.loading = false;
+      }
+    });
+  }
+
+  applyFilters(): void {
+    this.filteredTracteurs = this.tracteurs.filter(tracteur => {
+      const searchMatch = 
+        (tracteur.id?.toLowerCase().includes(this.searchText.toLowerCase()) || false) ||
+        (tracteur.marque?.toLowerCase().includes(this.searchText.toLowerCase()) || false) ||
+        (tracteur.modele?.toLowerCase().includes(this.searchText.toLowerCase()) || false);
+      
+      const statutMatch = !this.statutFilter || tracteur.statut === this.statutFilter;
+      const carburantMatch = !this.carburantFilter || tracteur.typeCarburant === this.carburantFilter;
+      
+      return searchMatch && statutMatch && carburantMatch;
+    });
+  }
+
+  onSearchChange(): void {
+    this.applyFilters();
+  }
+
+  onFilterChange(): void {
+    this.applyFilters();
+  }
+
+  deleteTracteur(id: string | undefined): void {
+    if (!id) return;
+    
+    if (confirm('Êtes-vous sûr de vouloir supprimer ce tracteur?')) {
+      this.tracteurService.delete(id).subscribe({
+        next: () => {
+          this.loadTracteurs();
+        },
+        error: (err) => {
+          this.error = 'Erreur lors de la suppression';
+          console.error(err);
+        }
+      });
+    }
+  }
+
+  getStatutColor(statut: string): string {
+    const colors: { [key: string]: string } = {
+      'DISPONIBLE': 'success',
+      'EN_USE': 'warning',
+      'MAINTENANCE': 'info',
+      'HORS_SERVICE': 'danger'
+    };
+    return colors[statut] || 'secondary';
+  }
+
+  getStatutIcon(statut: string): string {
+    const icons: { [key: string]: string } = {
+      'DISPONIBLE': 'check_circle',
+      'EN_USE': 'directions_run',
+      'MAINTENANCE': 'build',
+      'HORS_SERVICE': 'cancel'
+    };
+    return icons[statut] || 'help';
+  }
+
+  getCarburantIcon(carburant: string): string {
+    const icons: { [key: string]: string } = {
+      'DIESEL': 'local_gas_station',
+      'ESSENCE': 'local_gas_station',
+      'ELECTRIQUE': 'electric_car'
+    };
+    return icons[carburant] || 'help';
+  }
+}
+
+================================================================================
+COMPONENTS - resources/tracteurs/modifier-tracteur/modifier-tracteur.ts
+================================================================================
+
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatButtonModule } from '@angular/material/button';
+import { MatSelectModule } from '@angular/material/select';
+import { MatIconModule } from '@angular/material/icon';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+
+import { TracteurService } from '../../../services/tracteur';
+import { Tracteur } from '../../../models/tracteur';
+
+@Component({
+  selector: 'app-modifier-tracteur',
+  standalone: true,
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatButtonModule,
+    MatSelectModule,
+    MatIconModule,
+    MatCheckboxModule
+  ],
+  templateUrl: './modifier-tracteur.html',
+  styleUrls: ['./modifier-tracteur.css']
+})
+export class ModifierTracteurComponent implements OnInit {
+  form!: FormGroup;
+  loading = false;
+  loadingData = true;
+  error: string | null = null;
+  success = false;
+  tracteurId: string | null = null;
+  tracteur: Tracteur | null = null;
+
+  carburantOptions = [
+    { value: 'DIESEL', label: 'Diesel' },
+    { value: 'ESSENCE', label: 'Essence' },
+    { value: 'ELECTRIQUE', label: 'Électrique' }
+  ];
+
+  statutOptions = [
+    { value: 'DISPONIBLE', label: 'Disponible' },
+    { value: 'EN_USE', label: 'En Utilisation' },
+    { value: 'MAINTENANCE', label: 'Maintenance' },
+    { value: 'HORS_SERVICE', label: 'Hors Service' }
+  ];
+
+  constructor(
+    private fb: FormBuilder,
+    private tracteurService: TracteurService,
+    private route: ActivatedRoute,
+    private router: Router
+  ) {}
+
+  ngOnInit(): void {
+    this.route.params.subscribe(params => {
+      this.tracteurId = params['id'];
+      if (this.tracteurId) {
+        this.loadTracteur();
+      }
+    });
+    this.initializeForm();
+  }
+
+  initializeForm(): void {
+    this.form = this.fb.group({
+      marque: ['', Validators.required],
+      modele: ['', Validators.required],
+      annee: ['', [Validators.required, Validators.min(1950)]],
+      puissanceMoteur: ['', [Validators.required, Validators.min(1)]],
+      typeCarburant: ['', Validators.required],
+      consommationCarburant: ['', [Validators.required, Validators.min(0)]],
+      kilometrage: ['', [Validators.required, Validators.min(0)]],
+      remorqueAttachee: [false],
+      couleur: [''],
+      description: [''],
+      statut: ['', Validators.required]
+    });
+  }
+
+  loadTracteur(): void {
+    if (!this.tracteurId) return;
+
+    this.tracteurService.getById(this.tracteurId).subscribe({
+      next: (data) => {
+        this.tracteur = data;
+        this.form.patchValue({
+          marque: data.marque,
+          modele: data.modele,
+          annee: data.annee,
+          puissanceMoteur: data.puissanceMoteur,
+          typeCarburant: data.typeCarburant,
+          consommationCarburant: data.consommationCarburant,
+          kilometrage: data.kilometrage,
+          remorqueAttachee: data.remorqueAttachee,
+          couleur: data.couleur,
+          description: data.description,
+          statut: data.statut
+        });
+        this.loadingData = false;
+      },
+      error: (err) => {
+        this.error = 'Erreur lors du chargement du tracteur';
+        console.error(err);
+        this.loadingData = false;
+      }
+    });
+  }
+
+  onSubmit(): void {
+    if (this.form.invalid) {
+      this.error = 'Veuillez remplir tous les champs requis correctement';
+      return;
+    }
+
+    if (!this.tracteurId) {
+      this.error = 'ID du tracteur non trouvé';
+      return;
+    }
+
+    this.loading = true;
+    const updates = this.form.value;
+
+    this.tracteurService.update(this.tracteurId, updates).subscribe({
+      next: () => {
+        this.success = true;
+        this.loading = false;
+        setTimeout(() => {
+          this.router.navigate(['/resources/tracteurs']);
+        }, 1500);
+      },
+      error: (err) => {
+        this.error = 'Erreur lors de la mise à jour du tracteur';
+        console.error(err);
+        this.loading = false;
+      }
+    });
+  }
+
+  cancel(): void {
+    this.router.navigate(['/resources/tracteurs']);
+  }
+}
+
+================================================================================
+HTML TEMPLATES AND CSS STYLES (REFERENCE)
+================================================================================
+
+All HTML and CSS files are available in your frontend structure:
+
+BENNES:
+- liste-bennes.html / liste-bennes.css
+- ajouter-benne.html / ajouter-benne.css
+- modifier-benne.html / modifier-benne.css
+
+TRACTEURS:
+- liste-tracteurs.html / liste-tracteurs.css
+- ajouter-tracteur.html / ajouter-tracteur.css
+- modifier-tracteur.html / modifier-tracteur.css
+
+All components follow Material Design principles with proper routing, 
+error handling, and form validation.
+
+================================================================================
+INTEGRATION NOTES
+================================================================================
+
+1. Update your app.routes.ts to include these routes:
+   - /resources/bennes
+   - /resources/bennes/add (AjouterBenneComponent)
+   - /resources/bennes/edit/:id (ModifierBenneComponent)
+   - /resources/tracteurs
+   - /resources/tracteurs/add (AjouterTracteurComponent)
+   - /resources/tracteurs/edit/:id (ModifierTracteurComponent)
+
+2. Add HTTP interceptor if using authentication token
+
+3. Update API base URL in services if needed (currently localhost:8080)
+
+4. Import HttpClientModule in your app configuration
+
+5. All services are injectable with providedIn: 'root'

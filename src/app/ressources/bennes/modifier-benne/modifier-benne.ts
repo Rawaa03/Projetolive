@@ -126,11 +126,8 @@ export class ModifierBenneComponent implements OnInit {
       statut: this.benneForm.value.enMaintenance ? 'MAINTENANCE' : 'DISPONIBLE'
     };
 
-    console.log('[v0] Updating benne with data:', benneData);
-
     this.benneService.update(this.benneId, benneData).subscribe({
       next: (response) => {
-        console.log('[v0] Benne updated successfully:', response);
         this.isLoading = false;
         this.successMessage = 'Benne modifiée avec succès !';
         setTimeout(() => {
@@ -138,7 +135,6 @@ export class ModifierBenneComponent implements OnInit {
         }, 1500);
       },
       error: (err: HttpErrorResponse) => {
-        console.log('[v0] Error updating benne:', err);
         this.isLoading = false;
         this.errorMessage = err.message || 'Erreur lors de la modification de la benne';
         console.error('Erreur:', err);

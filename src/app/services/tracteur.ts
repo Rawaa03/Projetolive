@@ -8,12 +8,12 @@ import { Tracteur, TracteurCreation } from '../models/tracteur';
   providedIn: 'root'
 })
 export class TracteurService {
-  private apiUrl = 'http://localhost:8080/api/ressources/tracteurs';
+  private apiUrl = 'http://localhost:8080/api/ressources';
 
   constructor(private http: HttpClient) { }
 
   getAll(): Observable<Tracteur[]> {
-    return this.http.get<Tracteur[]>(this.apiUrl).pipe(
+    return this.http.get<Tracteur[]>(`${this.apiUrl}?type=TRACTEUR`).pipe(
       catchError(this.handleError)
     );
   }
@@ -25,14 +25,47 @@ export class TracteurService {
   }
 
   create(tracteur: TracteurCreation): Observable<Tracteur> {
-    // Le backend va compléter les propriétés manquantes
-    return this.http.post<Tracteur>(this.apiUrl, tracteur).pipe(
+    // Convert frontend format to backend format
+    const ressourceData = {
+      type: 'TRACTEUR',
+      nom: `${tracteur.marque} ${tracteur.modele}`,
+      marque: tracteur.marque,
+      modele: tracteur.modele,
+      puissance: String(tracteur.puissanceMoteur),
+      carburant: tracteur.typeCarburant,
+      consommationHoraire: tracteur.consommationCarburant,
+      kilometrage: tracteur.kilometrage,
+      aRemorque: tracteur.remorqueAttachee,
+      statut: 'DISPONIBLE',
+      immatriculation: `TRAC-${Date.now()}`
+    };
+    console.log('[v0] Sending tracteur to backend:', ressourceData);
+    return this.http.post<Tracteur>(this.apiUrl, ressourceData).pipe(
       catchError(this.handleError)
     );
   }
 
   update(id: string, tracteur: Partial<Tracteur>): Observable<Tracteur> {
-    return this.http.put<Tracteur>(`${this.apiUrl}/${id}`, tracteur).pipe(
+    // Convert field names for backend
+    const updateData: any = { ...tracteur };
+    if (tracteur.puissanceMoteur !== undefined) {
+      updateData.puissance = String(tracteur.puissanceMoteur);
+      delete updateData.puissanceMoteur;
+    }
+    if (tracteur.typeCarburant !== undefined) {
+      updateData.carburant = tracteur.typeCarburant;
+      delete updateData.typeCarburant;
+    }
+    if (tracteur.consommationCarburant !== undefined) {
+      updateData.consommationHoraire = tracteur.consommationCarburant;
+      delete updateData.consommationCarburant;
+    }
+    if (tracteur.remorqueAttachee !== undefined) {
+      updateData.aRemorque = tracteur.remorqueAttachee;
+      delete updateData.remorqueAttachee;
+    }
+    console.log('[v0] Updating tracteur with:', updateData);
+    return this.http.put<Tracteur>(`${this.apiUrl}/${id}`, updateData).pipe(
       catchError(this.handleError)
     );
   }
@@ -44,7 +77,7 @@ export class TracteurService {
   }
 
   getAvailable(): Observable<Tracteur[]> {
-    return this.http.get<Tracteur[]>(`${this.apiUrl}/available`).pipe(
+    return this.http.get<Tracteur[]>(`${this.apiUrl}?type=TRACTEUR&available=true`).pipe(
       catchError(this.handleError)
     );
   }
@@ -56,7 +89,7 @@ export class TracteurService {
   }
 
   updateKilometrage(id: string, kilometrage: number): Observable<Tracteur> {
-    return this.http.put<Tracteur>(`${this.apiUrl}/${id}/update-mileage`, { kilometrage }).pipe(
+    return this.http.put<Tracteur>(`${this.apiUrl}/${id}`, { kilometrage }).pipe(
       catchError(this.handleError)
     );
   }
@@ -92,7 +125,7 @@ export class TracteurService {
   }
 
   getWithTrailer(): Observable<Tracteur[]> {
-    return this.http.get<Tracteur[]>(`${this.apiUrl}/with-trailer`).pipe(
+    return this.http.get<Tracteur[]>(`${this.apiUrl}?type=TRACTEUR&aRemorque=true`).pipe(
       catchError(this.handleError)
     );
   }

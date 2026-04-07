@@ -87,7 +87,6 @@ export class AjouterTracteurComponent implements OnInit {
   onSubmit(): void {
     if (this.tracteurForm.invalid) {
       this.errorMessage = 'Veuillez remplir tous les champs obligatoires';
-      console.log('[v0] Form invalid. Form status:', this.tracteurForm.status);
       return;
     }
 
@@ -108,11 +107,8 @@ export class AjouterTracteurComponent implements OnInit {
       description: this.tracteurForm.value.description || ''
     };
 
-    console.log('[v0] Submitting tracteur data:', tracteurData);
-
     this.tracteurService.create(tracteurData).subscribe({
       next: (response) => {
-        console.log('[v0] Tracteur created successfully:', response);
         this.isLoading = false;
         this.successMessage = 'Tracteur ajouté avec succès !';
         setTimeout(() => {
@@ -120,7 +116,6 @@ export class AjouterTracteurComponent implements OnInit {
         }, 1500);
       },
       error: (err: HttpErrorResponse) => {
-        console.log('[v0] Error creating tracteur:', err);
         this.isLoading = false;
         this.errorMessage = err.message || 'Erreur lors de l\'ajout du tracteur';
         console.error('Erreur:', err);

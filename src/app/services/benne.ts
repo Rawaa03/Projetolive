@@ -8,12 +8,12 @@ import { Benne, BenneCreation } from '../models/benne';
   providedIn: 'root'
 })
 export class BenneService {
-  private apiUrl = 'http://localhost:8080/api/ressources/bennes';
+  private apiUrl = 'http://localhost:8080/api/ressources';
 
   constructor(private http: HttpClient) { }
 
   getAll(): Observable<Benne[]> {
-    return this.http.get<Benne[]>(this.apiUrl).pipe(
+    return this.http.get<Benne[]>(`${this.apiUrl}?type=BENNE`).pipe(
       catchError(this.handleError)
     );
   }
@@ -25,14 +25,32 @@ export class BenneService {
   }
 
   create(benne: BenneCreation): Observable<Benne> {
-    // Le backend va compléter les propriétés manquantes
-    return this.http.post<Benne>(this.apiUrl, benne).pipe(
+    // Convert frontend format to backend format
+    const ressourceData = {
+      type: 'BENNE',
+      nom: `Benne ${new Date().toLocaleDateString()}`,
+      capaciteKg: benne.capaciteMax,
+      tauxRemplissage: 0,
+      estPleine: false,
+      quantiteChargeeActuelle: 0,
+      statut: 'DISPONIBLE',
+      immatriculation: `BENNE-${Date.now()}`
+    };
+    console.log('[v0] Sending to backend:', ressourceData);
+    return this.http.post<Benne>(this.apiUrl, ressourceData).pipe(
       catchError(this.handleError)
     );
   }
 
   update(id: string, benne: Partial<Benne>): Observable<Benne> {
-    return this.http.put<Benne>(`${this.apiUrl}/${id}`, benne).pipe(
+    // Convert field names for backend
+    const updateData: any = { ...benne };
+    if (benne.capaciteMax !== undefined) {
+      updateData.capaciteKg = benne.capaciteMax;
+      delete updateData.capaciteMax;
+    }
+    console.log('[v0] Updating benne with:', updateData);
+    return this.http.put<Benne>(`${this.apiUrl}/${id}`, updateData).pipe(
       catchError(this.handleError)
     );
   }
@@ -80,7 +98,7 @@ export class BenneService {
   }
 
   getFullBennes(): Observable<Benne[]> {
-    return this.http.get<Benne[]>(`${this.apiUrl}/full`).pipe(
+    return this.http.get<Benne[]>(`${this.apiUrl}?type=BENNE&full=true`).pipe(
       catchError(this.handleError)
     );
   }

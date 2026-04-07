@@ -142,11 +142,8 @@ export class ModifierTracteurComponent implements OnInit {
       statut: this.tracteurForm.value.enMaintenance ? 'MAINTENANCE' : 'DISPONIBLE'
     };
 
-    console.log('[v0] Updating tracteur with data:', tracteurData);
-
     this.tracteurService.update(this.tracteurId, tracteurData).subscribe({
       next: (response) => {
-        console.log('[v0] Tracteur updated successfully:', response);
         this.isLoading = false;
         this.successMessage = 'Tracteur modifié avec succès !';
         setTimeout(() => {
@@ -154,7 +151,6 @@ export class ModifierTracteurComponent implements OnInit {
         }, 1500);
       },
       error: (err: HttpErrorResponse) => {
-        console.log('[v0] Error updating tracteur:', err);
         this.isLoading = false;
         this.errorMessage = err.message || 'Erreur lors de la modification du tracteur';
         console.error('Erreur:', err);

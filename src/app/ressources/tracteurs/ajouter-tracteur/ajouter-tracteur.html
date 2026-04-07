@@ -180,7 +180,7 @@
                   <label class="form-label">Année</label>
                   <input type="number" class="form-control" formControlName="annee"
                          [attr.min]="1990"
-                         [attr.max]="new Date().getFullYear()"
+                         [attr.max]="currentYear"
                          [class.is-invalid]="tracteurForm.get('annee')?.invalid && tracteurForm.get('annee')?.touched">
                 </div>
 

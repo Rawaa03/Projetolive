@@ -34,6 +34,9 @@ export class ModifierTracteurComponent implements OnInit {
   isSidebarCollapsed = false;
   isMobile = false;
   userRole: string = '';
+  
+  // Année actuelle pour les validators
+  currentYear = new Date().getFullYear();
 
   constructor(
     private fb: FormBuilder,
@@ -49,7 +52,7 @@ export class ModifierTracteurComponent implements OnInit {
       remorqueAttachee: [false],
       marque: [''],
       modele: [''],
-      annee: ['', [Validators.min(1990), Validators.max(new Date().getFullYear())]],
+      annee: ['', [Validators.min(1990), Validators.max(this.currentYear)]],
       couleur: ['#5A6E1A'],
       description: [''],
       enMaintenance: [false]

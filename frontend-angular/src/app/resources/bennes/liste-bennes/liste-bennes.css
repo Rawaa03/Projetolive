@@ -1,0 +1,65 @@
+.container {
+  padding: 20px;
+}
+
+.header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid #007bff;
+  padding-bottom: 15px;
+}
+
+.title {
+  color: #333;
+  font-weight: 600;
+  margin: 0;
+}
+
+.filters-section {
+  background: #f8f9fa;
+  border-left: 4px solid #007bff;
+}
+
+.progress {
+  height: 25px;
+}
+
+.progress-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 500;
+}
+
+.status-disponible {
+  background-color: #28a745 !important;
+  color: white;
+}
+
+.status-en_use {
+  background-color: #ffc107 !important;
+  color: black;
+}
+
+.status-maintenance {
+  background-color: #17a2b8 !important;
+  color: white;
+}
+
+.status-hors_service {
+  background-color: #dc3545 !important;
+  color: white;
+}
+
+.table-responsive {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+mat-icon {
+  vertical-align: middle;
+  margin-right: 5px;
+}

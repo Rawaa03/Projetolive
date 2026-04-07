@@ -1,0 +1,133 @@
+<div class="container mt-5">
+  <div class="header-section mb-4">
+    <h2 class="title">Gestion des Tracteurs</h2>
+    <button routerLink="/resources/tracteurs/add" class="btn btn-primary">
+      <mat-icon>add</mat-icon> Ajouter un Tracteur
+    </button>
+  </div>
+
+  <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+
+  <!-- Filtres -->
+  <div class="filters-section mb-4 p-3 bg-light rounded">
+    <div class="row g-3">
+      <div class="col-md-6">
+        <mat-form-field class="w-100">
+          <mat-label>Rechercher</mat-label>
+          <input matInput 
+                 [(ngModel)]="searchText" 
+                 (keyup)="onSearchChange()"
+                 placeholder="ID, Marque ou Modèle">
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+      </div>
+      <div class="col-md-3">
+        <mat-form-field class="w-100">
+          <mat-label>Statut</mat-label>
+          <mat-select [(value)]="statutFilter" (selectionChange)="onFilterChange()">
+            <mat-option value="">Tous</mat-option>
+            <mat-option value="DISPONIBLE">Disponible</mat-option>
+            <mat-option value="EN_USE">En Utilisation</mat-option>
+            <mat-option value="MAINTENANCE">Maintenance</mat-option>
+            <mat-option value="HORS_SERVICE">Hors Service</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+      <div class="col-md-3">
+        <mat-form-field class="w-100">
+          <mat-label>Carburant</mat-label>
+          <mat-select [(value)]="carburantFilter" (selectionChange)="onFilterChange()">
+            <mat-option value="">Tous</mat-option>
+            <mat-option value="DIESEL">Diesel</mat-option>
+            <mat-option value="ESSENCE">Essence</mat-option>
+            <mat-option value="ELECTRIQUE">Électrique</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tableau -->
+  <div class="table-responsive" *ngIf="!loading">
+    <table mat-table [dataSource]="filteredTracteurs" class="table table-striped table-hover">
+      
+      <!-- ID Column -->
+      <ng-container matColumnDef="id">
+        <th mat-header-cell *matHeaderCellDef>ID</th>
+        <td mat-cell *matCellDef="let element">{{ element.id }}</td>
+      </ng-container>
+
+      <!-- Marque Column -->
+      <ng-container matColumnDef="marque">
+        <th mat-header-cell *matHeaderCellDef>Marque</th>
+        <td mat-cell *matCellDef="let element">{{ element.marque }}</td>
+      </ng-container>
+
+      <!-- Modèle Column -->
+      <ng-container matColumnDef="modele">
+        <th mat-header-cell *matHeaderCellDef>Modèle</th>
+        <td mat-cell *matCellDef="let element">{{ element.modele }}</td>
+      </ng-container>
+
+      <!-- Puissance Column -->
+      <ng-container matColumnDef="puissanceMoteur">
+        <th mat-header-cell *matHeaderCellDef>Puissance</th>
+        <td mat-cell *matCellDef="let element">{{ element.puissanceMoteur }} CV</td>
+      </ng-container>
+
+      <!-- Carburant Column -->
+      <ng-container matColumnDef="typeCarburant">
+        <th mat-header-cell *matHeaderCellDef>Carburant</th>
+        <td mat-cell *matCellDef="let element">
+          <mat-icon>{{ getCarburantIcon(element.typeCarburant) }}</mat-icon>
+          {{ element.typeCarburant }}
+        </td>
+      </ng-container>
+
+      <!-- Kilométrage Column -->
+      <ng-container matColumnDef="kilometrage">
+        <th mat-header-cell *matHeaderCellDef>Kilométrage</th>
+        <td mat-cell *matCellDef="let element">{{ element.kilometrage }} km</td>
+      </ng-container>
+
+      <!-- Statut Column -->
+      <ng-container matColumnDef="statut">
+        <th mat-header-cell *matHeaderCellDef>Statut</th>
+        <td mat-cell *matCellDef="let element">
+          <mat-chip-set>
+            <mat-chip [ngClass]="'status-' + element.statut.toLowerCase()">
+              <mat-icon>{{ getStatutIcon(element.statut) }}</mat-icon>
+              {{ element.statut }}
+            </mat-chip>
+          </mat-chip-set>
+        </td>
+      </ng-container>
+
+      <!-- Actions Column -->
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef>Actions</th>
+        <td mat-cell *matCellDef="let element">
+          <button mat-icon-button 
+                  [routerLink]="['/resources/tracteurs/edit', element.id]"
+                  matTooltip="Modifier">
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button mat-icon-button 
+                  (click)="deleteTracteur(element.id)"
+                  matTooltip="Supprimer"
+                  color="warn">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="text-center">
+    <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+  </div>
+</div>

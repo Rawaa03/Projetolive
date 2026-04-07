@@ -1,0 +1,103 @@
+<div class="container mt-5">
+  <div *ngIf="loadingData" class="text-center">
+    <p>Chargement des données...</p>
+  </div>
+
+  <div *ngIf="!loadingData" class="form-container">
+    <h2 class="title mb-4">Modifier la Benne #{{ benne?.id }}</h2>
+
+    <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+    <div *ngIf="success" class="alert alert-success">Benne mise à jour avec succès!</div>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <div class="row">
+        <div class="col-md-6">
+          <mat-form-field class="w-100 mb-3">
+            <mat-label>Capacité Maximale (kg)</mat-label>
+            <input matInput 
+                   type="number" 
+                   formControlName="capaciteMax"
+                   placeholder="Ex: 5000">
+            <mat-error *ngIf="form.get('capaciteMax')?.hasError('required')">
+              La capacité est requise
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <div class="col-md-6">
+          <mat-form-field class="w-100 mb-3">
+            <mat-label>Type de Matériau</mat-label>
+            <mat-select formControlName="typeMateriau">
+              <mat-option *ngFor="let mat of materiauxOptions" [value]="mat.value">
+                {{ mat.label }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6">
+          <mat-form-field class="w-100 mb-3">
+            <mat-label>Usure (%)</mat-label>
+            <input matInput 
+                   type="number" 
+                   formControlName="usure"
+                   min="0"
+                   max="100">
+          </mat-form-field>
+        </div>
+
+        <div class="col-md-6">
+          <mat-form-field class="w-100 mb-3">
+            <mat-label>Couleur</mat-label>
+            <input matInput 
+                   type="text" 
+                   formControlName="couleur">
+          </mat-form-field>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6">
+          <mat-form-field class="w-100 mb-3">
+            <mat-label>Statut</mat-label>
+            <mat-select formControlName="statut">
+              <mat-option *ngFor="let stat of statutOptions" [value]="stat.value">
+                {{ stat.label }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-12">
+          <mat-form-field class="w-100 mb-3">
+            <mat-label>Description</mat-label>
+            <textarea matInput 
+                      formControlName="description"
+                      rows="4"></textarea>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <div class="action-buttons">
+        <button mat-raised-button 
+                color="primary" 
+                type="submit"
+                [disabled]="loading || form.invalid">
+          <mat-icon *ngIf="!loading">check</mat-icon>
+          {{ loading ? 'Mise à jour en cours...' : 'Mettre à jour' }}
+        </button>
+        <button mat-raised-button 
+                type="button"
+                (click)="cancel()"
+                [disabled]="loading">
+          <mat-icon>close</mat-icon>
+          Annuler
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

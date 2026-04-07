@@ -1,0 +1,151 @@
+<div class="container mt-5">
+  <div class="form-container">
+    <h2 class="title mb-4">Ajouter un Nouveau Tracteur</h2>
+
+    <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+    <div *ngIf="success" class="alert alert-success">Tracteur créé avec succès!</div>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <div class="row">
+        <div class="col-md-6">
+          <mat-form-field class="w-100 mb-3">
+            <mat-label>Marque</mat-label>
+            <input matInput 
+                   formControlName="marque"
+                   placeholder="Ex: John Deere">
+            <mat-error *ngIf="form.get('marque')?.hasError('required')">
+              La marque est requise
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <div class="col-md-6">
+          <mat-form-field class="w-100 mb-3">
+            <mat-label>Modèle</mat-label>
+            <input matInput 
+                   formControlName="modele"
+                   placeholder="Ex: 7830">
+            <mat-error *ngIf="form.get('modele')?.hasError('required')">
+              Le modèle est requis
+            </mat-error>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6">
+          <mat-form-field class="w-100 mb-3">
+            <mat-label>Année</mat-label>
+            <input matInput 
+                   type="number" 
+                   formControlName="annee">
+            <mat-error *ngIf="form.get('annee')?.hasError('required')">
+              L'année est requise
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <div class="col-md-6">
+          <mat-form-field class="w-100 mb-3">
+            <mat-label>Puissance Moteur (CV)</mat-label>
+            <input matInput 
+                   type="number" 
+                   formControlName="puissanceMoteur"
+                   placeholder="Ex: 100">
+            <mat-error *ngIf="form.get('puissanceMoteur')?.hasError('required')">
+              La puissance est requise
+            </mat-error>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6">
+          <mat-form-field class="w-100 mb-3">
+            <mat-label>Type de Carburant</mat-label>
+            <mat-select formControlName="typeCarburant">
+              <mat-option *ngFor="let carb of carburantOptions" [value]="carb.value">
+                {{ carb.label }}
+              </mat-option>
+            </mat-select>
+            <mat-error *ngIf="form.get('typeCarburant')?.hasError('required')">
+              Le type de carburant est requis
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <div class="col-md-6">
+          <mat-form-field class="w-100 mb-3">
+            <mat-label>Consommation (L/h)</mat-label>
+            <input matInput 
+                   type="number" 
+                   formControlName="consommationCarburant"
+                   placeholder="Ex: 15.5">
+            <mat-error *ngIf="form.get('consommationCarburant')?.hasError('required')">
+              La consommation est requise
+            </mat-error>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6">
+          <mat-form-field class="w-100 mb-3">
+            <mat-label>Kilométrage Actuel</mat-label>
+            <input matInput 
+                   type="number" 
+                   formControlName="kilometrage"
+                   placeholder="0">
+          </mat-form-field>
+        </div>
+
+        <div class="col-md-6">
+          <mat-form-field class="w-100 mb-3">
+            <mat-label>Couleur</mat-label>
+            <input matInput 
+                   formControlName="couleur"
+                   placeholder="Ex: Vert">
+          </mat-form-field>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-12">
+          <label class="mb-3">
+            <mat-checkbox formControlName="remorqueAttachee"></mat-checkbox>
+            Remorque Attachée
+          </label>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-12">
+          <mat-form-field class="w-100 mb-3">
+            <mat-label>Description</mat-label>
+            <textarea matInput 
+                      formControlName="description"
+                      rows="4"
+                      placeholder="Description optionnelle"></textarea>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <div class="action-buttons">
+        <button mat-raised-button 
+                color="primary" 
+                type="submit"
+                [disabled]="loading || form.invalid">
+          <mat-icon *ngIf="!loading">check</mat-icon>
+          {{ loading ? 'Création en cours...' : 'Créer le Tracteur' }}
+        </button>
+        <button mat-raised-button 
+                type="button"
+                (click)="cancel()"
+                [disabled]="loading">
+          <mat-icon>close</mat-icon>
+          Annuler
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

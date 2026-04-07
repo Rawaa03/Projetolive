@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { Benne, BenneCreation } from '../models/benne.model';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { Observable, throwError } from 'rxjs';
+import { catchError } from 'rxjs/operators';
+import { Benne, BenneCreation } from '../models/benne';
 
 @Injectable({
   providedIn: 'root'
@@ -9,67 +10,95 @@ import { Benne, BenneCreation } from '../models/benne.model';
 export class BenneService {
   private apiUrl = 'http://localhost:8080/api/ressources/bennes';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   getAll(): Observable<Benne[]> {
-    return this.http.get<Benne[]>(this.apiUrl);
+    return this.http.get<Benne[]>(this.apiUrl).pipe(
+      catchError(this.handleError)
+    );
   }
 
   getById(id: string): Observable<Benne> {
-    return this.http.get<Benne>(`${this.apiUrl}/${id}`);
-  }
-
-  getByType(type: string): Observable<Benne[]> {
-    return this.http.get<Benne[]>(`${this.apiUrl}/type/${type}`);
-  }
-
-  getByStatut(statut: string): Observable<Benne[]> {
-    return this.http.get<Benne[]>(`${this.apiUrl}/statut/${statut}`);
-  }
-
-  getAvailable(startDate: string, endDate: string): Observable<Benne[]> {
-    return this.http.get<Benne[]>(`${this.apiUrl}/available`, {
-      params: { startDate, endDate }
-    });
+    return this.http.get<Benne>(`${this.apiUrl}/${id}`).pipe(
+      catchError(this.handleError)
+    );
   }
 
   create(benne: BenneCreation): Observable<Benne> {
-    return this.http.post<Benne>(this.apiUrl, benne);
+    // Le backend va compléter les propriétés manquantes
+    return this.http.post<Benne>(this.apiUrl, benne).pipe(
+      catchError(this.handleError)
+    );
   }
 
   update(id: string, benne: Partial<Benne>): Observable<Benne> {
-    return this.http.put<Benne>(`${this.apiUrl}/${id}`, benne);
+    return this.http.put<Benne>(`${this.apiUrl}/${id}`, benne).pipe(
+      catchError(this.handleError)
+    );
   }
 
   delete(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+    return this.http.delete<void>(`${this.apiUrl}/${id}`).pipe(
+      catchError(this.handleError)
+    );
   }
 
   chargerBenne(id: string, quantite: number): Observable<Benne> {
-    return this.http.post<Benne>(`${this.apiUrl}/${id}/charger`, { quantite });
+    return this.http.post<Benne>(`${this.apiUrl}/${id}/charger`, { quantite }).pipe(
+      catchError(this.handleError)
+    );
   }
 
   viderBenne(id: string): Observable<Benne> {
-    return this.http.post<Benne>(`${this.apiUrl}/${id}/vider`, {});
+    return this.http.post<Benne>(`${this.apiUrl}/${id}/vider`, {}).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  assignTracteur(benneId: string, tracteurId: string): Observable<Benne> {
+    return this.http.post<Benne>(`${this.apiUrl}/${benneId}/assign-tracteur/${tracteurId}`, {}).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  unassignTracteur(benneId: string): Observable<Benne> {
+    return this.http.delete<Benne>(`${this.apiUrl}/${benneId}/unassign-tracteur`).pipe(
+      catchError(this.handleError)
+    );
   }
 
   startMaintenance(id: string): Observable<Benne> {
-    return this.http.post<Benne>(`${this.apiUrl}/${id}/maintenance/start`, {});
+    return this.http.post<Benne>(`${this.apiUrl}/${id}/maintenance`, {}).pipe(
+      catchError(this.handleError)
+    );
   }
 
   endMaintenance(id: string): Observable<Benne> {
-    return this.http.post<Benne>(`${this.apiUrl}/${id}/maintenance/end`, {});
+    return this.http.post<Benne>(`${this.apiUrl}/${id}/maintenance/end`, {}).pipe(
+      catchError(this.handleError)
+    );
   }
 
-  assignToTournee(id: string, tourneeId: string): Observable<Benne> {
-    return this.http.post<Benne>(`${this.apiUrl}/${id}/assign-tournee`, { tourneeId });
+  getFullBennes(): Observable<Benne[]> {
+    return this.http.get<Benne[]>(`${this.apiUrl}/full`).pipe(
+      catchError(this.handleError)
+    );
   }
 
-  unassignFromTournee(id: string): Observable<Benne> {
-    return this.http.post<Benne>(`${this.apiUrl}/${id}/unassign-tournee`, {});
+  getStats(id: string): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/${id}/stats`).pipe(
+      catchError(this.handleError)
+    );
   }
 
-  assignTractor(benneId: string, tracteurId: string): Observable<Benne> {
-    return this.http.post<Benne>(`${this.apiUrl}/${benneId}/assign-tractor`, { tracteurId });
+  private handleError(error: HttpErrorResponse): Observable<never> {
+    let errorMessage = 'Une erreur est survenue avec les bennes';
+    if (error.error instanceof ErrorEvent) {
+      errorMessage = `Erreur: ${error.error.message}`;
+    } else {
+      errorMessage = `Code: ${error.status}\nMessage: ${error.message}`;
+    }
+    console.error(errorMessage);
+    return throwError(() => new Error(errorMessage));
   }
 }

@@ -1,0 +1,132 @@
+<div class="container mt-5">
+  <div class="header-section mb-4">
+    <h2 class="title">Gestion des Bennes</h2>
+    <button routerLink="/resources/bennes/add" class="btn btn-primary">
+      <mat-icon>add</mat-icon> Ajouter une Benne
+    </button>
+  </div>
+
+  <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+
+  <!-- Filtres -->
+  <div class="filters-section mb-4 p-3 bg-light rounded">
+    <div class="row g-3">
+      <div class="col-md-6">
+        <mat-form-field class="w-100">
+          <mat-label>Rechercher</mat-label>
+          <input matInput 
+                 [(ngModel)]="searchText" 
+                 (keyup)="onSearchChange()"
+                 placeholder="ID ou Type de matériau">
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+      </div>
+      <div class="col-md-3">
+        <mat-form-field class="w-100">
+          <mat-label>Statut</mat-label>
+          <mat-select [(value)]="statutFilter" (selectionChange)="onFilterChange()">
+            <mat-option value="">Tous</mat-option>
+            <mat-option value="DISPONIBLE">Disponible</mat-option>
+            <mat-option value="EN_USE">En Utilisation</mat-option>
+            <mat-option value="MAINTENANCE">Maintenance</mat-option>
+            <mat-option value="HORS_SERVICE">Hors Service</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+      <div class="col-md-3">
+        <mat-form-field class="w-100">
+          <mat-label>Matériau</mat-label>
+          <mat-select [(value)]="materiauxFilter" (selectionChange)="onFilterChange()">
+            <mat-option value="">Tous</mat-option>
+            <mat-option value="PLASTIQUE">Plastique</mat-option>
+            <mat-option value="METAL">Métal</mat-option>
+            <mat-option value="BOIS">Bois</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tableau -->
+  <div class="table-responsive" *ngIf="!loading">
+    <table mat-table [dataSource]="filteredBennes" class="table table-striped table-hover">
+      
+      <!-- ID Column -->
+      <ng-container matColumnDef="id">
+        <th mat-header-cell *matHeaderCellDef>ID</th>
+        <td mat-cell *matCellDef="let element">{{ element.id }}</td>
+      </ng-container>
+
+      <!-- Capacité Column -->
+      <ng-container matColumnDef="capaciteMax">
+        <th mat-header-cell *matHeaderCellDef>Capacité (kg)</th>
+        <td mat-cell *matCellDef="let element">{{ element.capaciteMax }}</td>
+      </ng-container>
+
+      <!-- Charge Actuelle Column -->
+      <ng-container matColumnDef="chargeActuelle">
+        <th mat-header-cell *matHeaderCellDef>Charge Actuelle</th>
+        <td mat-cell *matCellDef="let element">{{ element.chargeActuelle }} kg</td>
+      </ng-container>
+
+      <!-- Pourcentage Remplissage Column -->
+      <ng-container matColumnDef="pourcentageRemplissage">
+        <th mat-header-cell *matHeaderCellDef>Remplissage</th>
+        <td mat-cell *matCellDef="let element">
+          <div class="progress">
+            <div class="progress-bar" 
+                 [style.width.%]="element.pourcentageRemplissage"
+                 [ngClass]="element.pourcentageRemplissage > 80 ? 'bg-danger' : 'bg-success'">
+              {{ element.pourcentageRemplissage }}%
+            </div>
+          </div>
+        </td>
+      </ng-container>
+
+      <!-- Statut Column -->
+      <ng-container matColumnDef="statut">
+        <th mat-header-cell *matHeaderCellDef>Statut</th>
+        <td mat-cell *matCellDef="let element">
+          <mat-chip-set>
+            <mat-chip [ngClass]="'status-' + element.statut.toLowerCase()">
+              <mat-icon>{{ getStatutIcon(element.statut) }}</mat-icon>
+              {{ element.statut }}
+            </mat-chip>
+          </mat-chip-set>
+        </td>
+      </ng-container>
+
+      <!-- Type Matériau Column -->
+      <ng-container matColumnDef="typeMateriau">
+        <th mat-header-cell *matHeaderCellDef>Matériau</th>
+        <td mat-cell *matCellDef="let element">{{ element.typeMateriau }}</td>
+      </ng-container>
+
+      <!-- Actions Column -->
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef>Actions</th>
+        <td mat-cell *matCellDef="let element">
+          <button mat-icon-button 
+                  [routerLink]="['/resources/bennes/edit', element.id]"
+                  matTooltip="Modifier">
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button mat-icon-button 
+                  (click)="deleteBenne(element.id)"
+                  matTooltip="Supprimer"
+                  color="warn">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="text-center">
+    <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+  </div>
+</div>

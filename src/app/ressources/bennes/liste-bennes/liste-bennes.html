@@ -114,7 +114,7 @@
                   <td style="padding: 1rem 0.75rem;">{{ b.capaciteKg | number }} kg</td>
                   <td style="padding: 1rem 0.75rem;">
                     <div style="background: #F0F4D8; border-radius: 8px; overflow: hidden; height: 24px; width: 100px;">
-                      <div style="background: #A8B84B; height: 100%; width: {{ b.tauxRemplissage }}%;"></div>
+                      <div style="background: #A8B84B; height: 100%;" [ngStyle]="{'width': b.tauxRemplissage + '%'}"></div>
                     </div>
                     {{ b.tauxRemplissage }}%
                   </td>

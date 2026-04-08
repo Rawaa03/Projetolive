@@ -1,5 +1,5 @@
 // src/app/ressources/bennes/modifier-benne/modifier-benne.ts
-import { Component, OnInit, HostListener } from '@angular/core';
+import { Component, OnInit, HostListener, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -41,7 +41,8 @@ export class ModifierBenneComponent implements OnInit {
     private fb: FormBuilder,
     private benneService: BenneService,
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    private cdr: ChangeDetectorRef
   ) {
     this.benneForm = this.fb.group({
       capaciteMax: ['', [Validators.required, Validators.min(100)]],
@@ -98,10 +99,12 @@ export class ModifierBenneComponent implements OnInit {
           enMaintenance: data.statut === 'MAINTENANCE'
         });
         this.isLoading = false;
+        this.cdr.detectChanges();
       },
       error: (err: HttpErrorResponse) => {
         this.errorMessage = err.message || 'Erreur lors du chargement de la benne';
         this.isLoading = false;
+        this.cdr.detectChanges();
         console.error('Erreur:', err);
       }
     });
@@ -110,6 +113,7 @@ export class ModifierBenneComponent implements OnInit {
   onSubmit(): void {
     if (this.benneForm.invalid) {
       this.errorMessage = 'Veuillez remplir tous les champs obligatoires';
+      this.cdr.detectChanges();
       return;
     }
 
@@ -130,6 +134,7 @@ export class ModifierBenneComponent implements OnInit {
       next: (response) => {
         this.isLoading = false;
         this.successMessage = 'Benne modifiée avec succès !';
+        this.cdr.detectChanges();
         setTimeout(() => {
           this.router.navigate(['/ressources/bennes']);
         }, 1500);
@@ -137,6 +142,7 @@ export class ModifierBenneComponent implements OnInit {
       error: (err: HttpErrorResponse) => {
         this.isLoading = false;
         this.errorMessage = err.message || 'Erreur lors de la modification de la benne';
+        this.cdr.detectChanges();
         console.error('Erreur:', err);
       }
     });

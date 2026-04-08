@@ -1,5 +1,5 @@
 // src/app/ressources/tracteurs/modifier-tracteur/modifier-tracteur.ts
-import { Component, OnInit, HostListener } from '@angular/core';
+import { Component, OnInit, HostListener, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { ReactiveFormsModule, FormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -42,7 +42,8 @@ export class ModifierTracteurComponent implements OnInit {
     private fb: FormBuilder,
     private tracteurService: TracteurService,
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    private cdr: ChangeDetectorRef
   ) {
     this.tracteurForm = this.fb.group({
       puissanceMoteur: ['', [Validators.required, Validators.min(1)]],
@@ -109,10 +110,12 @@ export class ModifierTracteurComponent implements OnInit {
           enMaintenance: data.statut === 'MAINTENANCE'
         });
         this.isLoading = false;
+        this.cdr.detectChanges();
       },
       error: (err: HttpErrorResponse) => {
         this.errorMessage = err.message || 'Erreur lors du chargement du tracteur';
         this.isLoading = false;
+        this.cdr.detectChanges();
         console.error('Erreur:', err);
       }
     });
@@ -121,6 +124,7 @@ export class ModifierTracteurComponent implements OnInit {
   onSubmit(): void {
     if (this.tracteurForm.invalid) {
       this.errorMessage = 'Veuillez remplir tous les champs obligatoires';
+      this.cdr.detectChanges();
       return;
     }
 
@@ -146,6 +150,7 @@ export class ModifierTracteurComponent implements OnInit {
       next: (response) => {
         this.isLoading = false;
         this.successMessage = 'Tracteur modifié avec succès !';
+        this.cdr.detectChanges();
         setTimeout(() => {
           this.router.navigate(['/ressources/tracteurs']);
         }, 1500);
@@ -153,6 +158,7 @@ export class ModifierTracteurComponent implements OnInit {
       error: (err: HttpErrorResponse) => {
         this.isLoading = false;
         this.errorMessage = err.message || 'Erreur lors de la modification du tracteur';
+        this.cdr.detectChanges();
         console.error('Erreur:', err);
       }
     });

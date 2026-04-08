@@ -8,12 +8,12 @@ import { Tracteur, TracteurCreation } from '../models/tracteur';
   providedIn: 'root'
 })
 export class TracteurService {
-  private apiUrl = 'http://localhost:8080/api/ressources';
+  private apiUrl = 'http://localhost:8080/api/ressources/tracteurs';
 
   constructor(private http: HttpClient) { }
 
   getAll(): Observable<Tracteur[]> {
-    return this.http.get<Tracteur[]>(`${this.apiUrl}?type=TRACTEUR`).pipe(
+    return this.http.get<Tracteur[]>(this.apiUrl).pipe(
       catchError(this.handleError)
     );
   }
@@ -75,7 +75,7 @@ export class TracteurService {
   }
 
   getAvailable(): Observable<Tracteur[]> {
-    return this.http.get<Tracteur[]>(`${this.apiUrl}?type=TRACTEUR&available=true`).pipe(
+    return this.http.get<Tracteur[]>(`${this.apiUrl}/available`).pipe(
       catchError(this.handleError)
     );
   }
@@ -123,7 +123,7 @@ export class TracteurService {
   }
 
   getWithTrailer(): Observable<Tracteur[]> {
-    return this.http.get<Tracteur[]>(`${this.apiUrl}?type=TRACTEUR&aRemorque=true`).pipe(
+    return this.http.get<Tracteur[]>(`${this.apiUrl}/with-trailer`).pipe(
       catchError(this.handleError)
     );
   }

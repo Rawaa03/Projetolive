@@ -8,12 +8,12 @@ import { Benne, BenneCreation } from '../models/benne';
   providedIn: 'root'
 })
 export class BenneService {
-  private apiUrl = 'http://localhost:8080/api/ressources';
+  private apiUrl = 'http://localhost:8080/api/ressources/bennes';
 
   constructor(private http: HttpClient) { }
 
   getAll(): Observable<Benne[]> {
-    return this.http.get<Benne[]>(`${this.apiUrl}?type=BENNE`).pipe(
+    return this.http.get<Benne[]>(this.apiUrl).pipe(
       catchError(this.handleError)
     );
   }
@@ -32,8 +32,7 @@ export class BenneService {
       tauxRemplissage: 0,
       estPleine: false,
       quantiteChargeeActuelle: 0,
-      statut: 'DISPONIBLE',
-      immatriculation: `BENNE-${Date.now()}`
+      statut: 'DISPONIBLE'
     };
     return this.http.post<Benne>(this.apiUrl, ressourceData).pipe(
       catchError(this.handleError)
@@ -99,7 +98,7 @@ export class BenneService {
   }
 
   getFullBennes(): Observable<Benne[]> {
-    return this.http.get<Benne[]>(`${this.apiUrl}?type=BENNE&full=true`).pipe(
+    return this.http.get<Benne[]>(`${this.apiUrl}/full`).pipe(
       catchError(this.handleError)
     );
   }

@@ -2,23 +2,16 @@ import { Ressource, RessourceType, RessourceStatut } from './ressource';
 
 export interface Benne extends Ressource {
   type: 'BENNE';
-  capaciteMax: number;
-  chargeActuelle: number;
-  pourcentageRemplissage: number;
-  typeMateriau: string;
-  tracteurId?: string;
-  dateDernierChargement?: Date;
-  dateDerniereVidange?: Date;
-  usure: number;
-  couleur?: string;
-  description?: string;
+  capaciteKg: number;
+  quantiteChargeeActuelle?: number;
+  tauxRemplissage?: number;
+  estPleine?: boolean;
+  tracteurAttacheId?: string;
 }
 
 // Interface pour la création (sans les propriétés calculées ou générées par le backend)
 export interface BenneCreation {
-  capaciteMax: number;
-  typeMateriau: string;
-  usure: number;
-  couleur?: string;
-  description?: string;
+  nom: string;
+  immatriculation: string;
+  capaciteKg: number;
 }

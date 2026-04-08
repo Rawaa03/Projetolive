@@ -94,65 +94,50 @@
               </h3>
 
               <div class="form-row">
-                <!-- Capacité Max -->
+                <!-- Immatriculation (read-only) -->
                 <div class="form-group">
-                  <label class="form-label">Capacité maximale (kg) <span class="required">*</span></label>
-                  <input type="number" class="form-control" formControlName="capaciteMax"
-                         [class.is-invalid]="benneForm.get('capaciteMax')?.invalid && benneForm.get('capaciteMax')?.touched">
-                  <div class="invalid-feedback" *ngIf="benneForm.get('capaciteMax')?.invalid && benneForm.get('capaciteMax')?.touched">
-                    <span *ngIf="benneForm.get('capaciteMax')?.errors?.['required']">Capacité requise</span>
-                    <span *ngIf="benneForm.get('capaciteMax')?.errors?.['min']">Minimum 100 kg</span>
-                  </div>
+                  <label class="form-label">Immatriculation</label>
+                  <input type="text" class="form-control" [value]="benne?.immatriculation" disabled>
+                </div>
+
+                <!-- Nom (read-only) -->
+                <div class="form-group">
+                  <label class="form-label">Nom</label>
+                  <input type="text" class="form-control" [value]="benne?.nom" disabled>
                 </div>
               </div>
 
               <div class="form-row">
-                <!-- Type de matériau -->
+                <!-- Capacité Kg (read-only) -->
                 <div class="form-group">
-                  <label class="form-label">Type de matériau <span class="required">*</span></label>
-                  <select class="form-control" formControlName="typeMateriau"
-                          [class.is-invalid]="benneForm.get('typeMateriau')?.invalid && benneForm.get('typeMateriau')?.touched">
-                    <option value="">-- Sélectionner --</option>
-                    <option *ngFor="let m of materiaux" [value]="m">{{ m }}</option>
+                  <label class="form-label">Capacité (kg)</label>
+                  <input type="number" class="form-control" [value]="benne?.capaciteKg" disabled>
+                </div>
+
+                <!-- Statut -->
+                <div class="form-group">
+                  <label class="form-label">Statut <span class="required">*</span></label>
+                  <select class="form-control" formControlName="statut"
+                          [class.is-invalid]="benneForm.get('statut')?.invalid && benneForm.get('statut')?.touched">
+                    <option value="DISPONIBLE">Disponible</option>
+                    <option value="EN_USE">En Usage</option>
+                    <option value="MAINTENANCE">Maintenance</option>
+                    <option value="HORS_SERVICE">Hors Service</option>
                   </select>
-                  <div class="invalid-feedback" *ngIf="benneForm.get('typeMateriau')?.invalid && benneForm.get('typeMateriau')?.touched">
-                    Type de matériau requis
-                  </div>
-                </div>
-
-                <!-- Usure -->
-                <div class="form-group">
-                  <label class="form-label">Usure (%) <span class="required">*</span></label>
-                  <input type="number" class="form-control" formControlName="usure" min="0" max="100"
-                         [class.is-invalid]="benneForm.get('usure')?.invalid && benneForm.get('usure')?.touched">
-                  <div class="invalid-feedback" *ngIf="benneForm.get('usure')?.invalid && benneForm.get('usure')?.touched">
-                    Usure entre 0 et 100%
-                  </div>
                 </div>
               </div>
 
               <div class="form-row">
-                <!-- Couleur -->
+                <!-- Charge Actuelle (info) -->
                 <div class="form-group">
-                  <label class="form-label">Couleur <span class="required">*</span></label>
-                  <input type="color" class="form-control" formControlName="couleur"
-                         [class.is-invalid]="benneForm.get('couleur')?.invalid && benneForm.get('couleur')?.touched">
+                  <label class="form-label">Charge Actuelle (kg)</label>
+                  <input type="number" class="form-control" [value]="benne?.quantiteChargeeActuelle || 0" disabled>
                 </div>
 
-                <!-- Maintenance -->
+                <!-- Taux Remplissage (info) -->
                 <div class="form-group">
-                  <label class="form-label">
-                    <input type="checkbox" formControlName="enMaintenance">
-                    En maintenance
-                  </label>
-                </div>
-              </div>
-
-              <div class="form-row">
-                <!-- Description -->
-                <div class="form-group">
-                  <label class="form-label">Description</label>
-                  <textarea class="form-control" formControlName="description" rows="3"></textarea>
+                  <label class="form-label">Taux Remplissage (%)</label>
+                  <input type="number" class="form-control" [value]="(benne?.tauxRemplissage || 0) | number:'1.0-0'" disabled>
                 </div>
               </div>
             </div>

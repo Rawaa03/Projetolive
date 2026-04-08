@@ -33,9 +33,6 @@ export class AjouterTracteurComponent implements OnInit {
   isMobile = false;
   userRole: string = '';
   
-  // Année actuelle pour les validators
-  currentYear = new Date().getFullYear();
-
   constructor(
     private fb: FormBuilder,
     private tracteurService: TracteurService,
@@ -43,16 +40,13 @@ export class AjouterTracteurComponent implements OnInit {
     private cdr: ChangeDetectorRef
   ) {
     this.tracteurForm = this.fb.group({
-      puissanceMoteur: ['', [Validators.required, Validators.min(1)]],
-      consommationCarburant: ['', [Validators.required, Validators.min(0.1)]],
-      kilometrage: [0, [Validators.required, Validators.min(0)]],
-      typeCarburant: ['', Validators.required],
-      remorqueAttachee: [false],
-      marque: [''],
-      modele: [''],
-      annee: ['', [Validators.min(1990), Validators.max(this.currentYear)]],
-      couleur: ['#5A6E1A'],
-      description: ['']
+      nom: ['', Validators.required],
+      immatriculation: ['', Validators.required],
+      puissance: [''],
+      carburant: [''],
+      consommationHoraire: [''],
+      kilometrage: [''],
+      aRemorque: [false]
     });
   }
 
@@ -97,16 +91,13 @@ export class AjouterTracteurComponent implements OnInit {
     this.successMessage = '';
 
     const tracteurData: TracteurCreation = {
-      puissanceMoteur: Number(this.tracteurForm.value.puissanceMoteur),
-      consommationCarburant: Number(this.tracteurForm.value.consommationCarburant),
-      kilometrage: Number(this.tracteurForm.value.kilometrage),
-      typeCarburant: this.tracteurForm.value.typeCarburant,
-      remorqueAttachee: this.tracteurForm.value.remorqueAttachee || false,
-      marque: this.tracteurForm.value.marque,
-      modele: this.tracteurForm.value.modele,
-      annee: Number(this.tracteurForm.value.annee),
-      couleur: this.tracteurForm.value.couleur || '',
-      description: this.tracteurForm.value.description || ''
+      nom: this.tracteurForm.value.nom,
+      immatriculation: this.tracteurForm.value.immatriculation,
+      puissance: this.tracteurForm.value.puissance || '',
+      carburant: this.tracteurForm.value.carburant || '',
+      consommationHoraire: this.tracteurForm.value.consommationHoraire ? Number(this.tracteurForm.value.consommationHoraire) : undefined,
+      kilometrage: this.tracteurForm.value.kilometrage ? Number(this.tracteurForm.value.kilometrage) : undefined,
+      aRemorque: this.tracteurForm.value.aRemorque || false
     };
 
     this.tracteurService.create(tracteurData).subscribe({

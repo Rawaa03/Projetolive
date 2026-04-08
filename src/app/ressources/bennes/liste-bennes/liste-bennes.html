@@ -103,37 +103,25 @@
               <thead>
                 <tr style="border-bottom: 2px solid rgba(168, 184, 75, 0.2);">
                   <th style="text-align: left; padding: 1rem 0.75rem; background: #F9F6EB; color: #5A5A48; font-weight: 600;">Immatriculation</th>
-                  <th style="text-align: left; padding: 1rem 0.75rem; background: #F9F6EB; color: #5A5A48; font-weight: 600;">Type</th>
-                  <th style="text-align: left; padding: 1rem 0.75rem; background: #F9F6EB; color: #5A5A48; font-weight: 600;">Capacité</th>
-                  <th style="text-align: left; padding: 1rem 0.75rem; background: #F9F6EB; color: #5A5A48; font-weight: 600;">Usure</th>
-                  <th style="text-align: left; padding: 1rem 0.75rem; background: #F9F6EB; color: #5A5A48; font-weight: 600;">Remplissage</th>
-                  <th style="text-align: left; padding: 1rem 0.75rem; background: #F9F6EB; color: #5A5A48; font-weight: 600;">Couleur</th>
+                  <th style="text-align: left; padding: 1rem 0.75rem; background: #F9F6EB; color: #5A5A48; font-weight: 600;">Nom</th>
+                  <th style="text-align: left; padding: 1rem 0.75rem; background: #F9F6EB; color: #5A5A48; font-weight: 600;">Capacité (kg)</th>
+                  <th style="text-align: left; padding: 1rem 0.75rem; background: #F9F6EB; color: #5A5A48; font-weight: 600;">Charge Actuelle</th>
+                  <th style="text-align: left; padding: 1rem 0.75rem; background: #F9F6EB; color: #5A5A48; font-weight: 600;">% Remplissage</th>
                   <th style="text-align: left; padding: 1rem 0.75rem; background: #F9F6EB; color: #5A5A48; font-weight: 600;">Statut</th>
                   <th style="text-align: left; padding: 1rem 0.75rem; background: #F9F6EB; color: #5A5A48; font-weight: 600;">Actions</th>
                  </thead>
               <tbody>
                 <tr *ngFor="let b of filteredBennes" style="border-bottom: 1px solid rgba(168, 184, 75, 0.15);">
-                  <td style="padding: 1rem 0.75rem; font-weight: 600;">{{ b.id?.substring(0, 8) }}</td>
-                  <td style="padding: 1rem 0.75rem;">{{ b.typeMateriau }}</td>
-                  <td style="padding: 1rem 0.75rem;">{{ b.capaciteMax | number }} kg</td>
+                  <td style="padding: 1rem 0.75rem; font-weight: 600;">{{ b.immatriculation }}</td>
+                  <td style="padding: 1rem 0.75rem;">{{ b.nom }}</td>
+                  <td style="padding: 1rem 0.75rem;">{{ b.capaciteKg | number }} kg</td>
+                  <td style="padding: 1rem 0.75rem;">{{ (b.quantiteChargeeActuelle || 0) | number }} kg</td>
                   <td style="padding: 1rem 0.75rem;">
                     <div style="display: flex; align-items: center; gap: 0.5rem;">
-                      <div style="background: #F0F4D8; border-radius: 4px; overflow: hidden; height: 16px; width: 60px;">
-                        <div style="background: #A8B84B; height: 100%;" [ngStyle]="{'width': b.usure + '%'}"></div>
+                      <div style="background: #F0F4D8; border-radius: 8px; overflow: hidden; height: 24px; width: 100px;">
+                        <div style="background: #A8B84B; height: 100%;" [ngStyle]="{'width': (b.tauxRemplissage || 0) + '%'}"></div>
                       </div>
-                      {{ b.usure }}%
-                    </div>
-                  </td>
-                  <td style="padding: 1rem 0.75rem;">
-                    <div style="background: #F0F4D8; border-radius: 8px; overflow: hidden; height: 24px; width: 100px;">
-                      <div style="background: #A8B84B; height: 100%;" [ngStyle]="{'width': b.pourcentageRemplissage + '%'}"></div>
-                    </div>
-                    {{ b.pourcentageRemplissage }}%
-                  </td>
-                  <td style="padding: 1rem 0.75rem;">
-                    <div style="display: flex; align-items: center; gap: 0.5rem;">
-                      <div style="width: 24px; height: 24px; border-radius: 4px; border: 2px solid #E0E0E0;" [style.background-color]="b.couleur"></div>
-                      <span style="font-size: 0.8rem; font-family: monospace; color: #666;">{{ b.couleur }}</span>
+                      {{ (b.tauxRemplissage || 0) | number:'1.0-0' }}%
                     </div>
                   </td>
                   <td style="padding: 1rem 0.75rem;">

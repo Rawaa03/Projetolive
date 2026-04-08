@@ -86,127 +86,58 @@
 
           <form *ngIf="!isLoading" [formGroup]="tracteurForm" (ngSubmit)="onSubmit()" class="oh-form">
 
-            <!-- Informations techniques -->
-            <div class="form-section">
-              <h3 class="section-title">
-                <i class="bi bi-tools"></i>
-                Informations techniques
-              </h3>
-
-              <div class="form-row">
-                <!-- Puissance moteur -->
-                <div class="form-group">
-                  <label class="form-label">Puissance moteur (CV) <span class="required">*</span></label>
-                  <input type="number" class="form-control" formControlName="puissanceMoteur"
-                         [class.is-invalid]="tracteurForm.get('puissanceMoteur')?.invalid && tracteurForm.get('puissanceMoteur')?.touched">
-                  <div class="invalid-feedback" *ngIf="tracteurForm.get('puissanceMoteur')?.invalid && tracteurForm.get('puissanceMoteur')?.touched">
-                    Puissance requise (min 1)
-                  </div>
-                </div>
-
-                <!-- Consommation carburant -->
-                <div class="form-group">
-                  <label class="form-label">Consommation (L/100km) <span class="required">*</span></label>
-                  <input type="number" class="form-control" formControlName="consommationCarburant"
-                         [class.is-invalid]="tracteurForm.get('consommationCarburant')?.invalid && tracteurForm.get('consommationCarburant')?.touched">
-                  <div class="invalid-feedback" *ngIf="tracteurForm.get('consommationCarburant')?.invalid && tracteurForm.get('consommationCarburant')?.touched">
-                    Consommation requise (min 0.1)
-                  </div>
-                </div>
-              </div>
-
-              <div class="form-row">
-                <!-- Kilométrage -->
-                <div class="form-group">
-                  <label class="form-label">Kilométrage (km) <span class="required">*</span></label>
-                  <input type="number" class="form-control" formControlName="kilometrage"
-                         [class.is-invalid]="tracteurForm.get('kilometrage')?.invalid && tracteurForm.get('kilometrage')?.touched">
-                  <div class="invalid-feedback" *ngIf="tracteurForm.get('kilometrage')?.invalid && tracteurForm.get('kilometrage')?.touched">
-                    Kilométrage requis (min 0)
-                  </div>
-                </div>
-
-                <!-- Type carburant -->
-                <div class="form-group">
-                  <label class="form-label">Type de carburant <span class="required">*</span></label>
-                  <select class="form-control" formControlName="typeCarburant"
-                          [class.is-invalid]="tracteurForm.get('typeCarburant')?.invalid && tracteurForm.get('typeCarburant')?.touched">
-                    <option value="">-- Sélectionner --</option>
-                    <option value="DIESEL">Diesel</option>
-                    <option value="ESSENCE">Essence</option>
-                    <option value="ELECTRIQUE">Électrique</option>
-                    <option value="HYBRIDE">Hybride</option>
-                  </select>
-                  <div class="invalid-feedback" *ngIf="tracteurForm.get('typeCarburant')?.invalid && tracteurForm.get('typeCarburant')?.touched">
-                    Type de carburant requis
-                  </div>
-                </div>
-              </div>
-
-              <div class="form-row">
-                <!-- Remorque attachée -->
-                <div class="form-group">
-                  <label class="form-label">
-                    <input type="checkbox" formControlName="remorqueAttachee">
-                    Remorque attachée
-                  </label>
-                </div>
-              </div>
-            </div>
-
-            <!-- Informations générales -->
+            <!-- Informations du tracteur -->
             <div class="form-section">
               <h3 class="section-title">
                 <i class="bi bi-info-circle"></i>
-                Informations générales
+                Informations du tracteur
               </h3>
 
               <div class="form-row">
-                <!-- Marque -->
+                <!-- Immatriculation (read-only) -->
                 <div class="form-group">
-                  <label class="form-label">Marque</label>
-                  <input type="text" class="form-control" formControlName="marque">
+                  <label class="form-label">Immatriculation</label>
+                  <input type="text" class="form-control" [value]="tracteur?.immatriculation" disabled>
                 </div>
 
-                <!-- Modèle -->
+                <!-- Nom (read-only) -->
                 <div class="form-group">
-                  <label class="form-label">Modèle</label>
-                  <input type="text" class="form-control" formControlName="modele">
-                </div>
-              </div>
-
-              <div class="form-row">
-                <!-- Année -->
-                <div class="form-group">
-                  <label class="form-label">Année</label>
-                  <input type="number" class="form-control" formControlName="annee"
-                         [attr.min]="1990"
-                         [attr.max]="currentYear"
-                         [class.is-invalid]="tracteurForm.get('annee')?.invalid && tracteurForm.get('annee')?.touched">
-                </div>
-
-                <!-- Couleur -->
-                <div class="form-group">
-                  <label class="form-label">Couleur</label>
-                  <input type="color" class="form-control" formControlName="couleur">
+                  <label class="form-label">Nom</label>
+                  <input type="text" class="form-control" [value]="tracteur?.nom" disabled>
                 </div>
               </div>
 
               <div class="form-row">
-                <!-- Maintenance -->
+                <!-- Statut -->
                 <div class="form-group">
-                  <label class="form-label">
-                    <input type="checkbox" formControlName="enMaintenance">
-                    En maintenance
-                  </label>
+                  <label class="form-label">Statut <span class="required">*</span></label>
+                  <select class="form-control" formControlName="statut"
+                          [class.is-invalid]="tracteurForm.get('statut')?.invalid && tracteurForm.get('statut')?.touched">
+                    <option value="DISPONIBLE">Disponible</option>
+                    <option value="EN_USE">En Usage</option>
+                    <option value="MAINTENANCE">Maintenance</option>
+                    <option value="HORS_SERVICE">Hors Service</option>
+                  </select>
+                </div>
+
+                <!-- Remorque attachée (info) -->
+                <div class="form-group">
+                  <label class="form-label">Remorque attachée</label>
+                  <input type="text" class="form-control" [value]="tracteur?.aRemorque ? 'Oui' : 'Non'" disabled>
                 </div>
               </div>
 
               <div class="form-row">
-                <!-- Description -->
+                <!-- Puissance (info) -->
                 <div class="form-group">
-                  <label class="form-label">Description</label>
-                  <textarea class="form-control" formControlName="description" rows="3"></textarea>
+                  <label class="form-label">Puissance</label>
+                  <input type="text" class="form-control" [value]="tracteur?.puissance || '-'" disabled>
+                </div>
+
+                <!-- Carburant (info) -->
+                <div class="form-group">
+                  <label class="form-label">Carburant</label>
+                  <input type="text" class="form-control" [value]="tracteur?.carburant || '-'" disabled>
                 </div>
               </div>
             </div>

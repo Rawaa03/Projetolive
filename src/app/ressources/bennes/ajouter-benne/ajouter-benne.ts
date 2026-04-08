@@ -32,20 +32,15 @@ export class AjouterBenneComponent implements OnInit {
   isMobile = false;
   userRole: string = '';
 
-  // Types de matériaux possibles
-  materiaux: string[] = ['OLIVES', 'PLASTIQUE', 'METAL', 'BOIS', 'GENERAL'];
-
   constructor(
     private fb: FormBuilder,
     private benneService: BenneService,
     private router: Router
   ) {
     this.benneForm = this.fb.group({
-      capaciteMax: ['', [Validators.required, Validators.min(100)]],
-      typeMateriau: ['', Validators.required],
-      usure: [0, [Validators.required, Validators.min(0), Validators.max(100)]],
-      couleur: ['#5A6E1A', Validators.required],
-      description: ['']
+      nom: ['', Validators.required],
+      immatriculation: ['', Validators.required],
+      capaciteKg: ['', [Validators.required, Validators.min(100)]]
     });
   }
 
@@ -89,11 +84,9 @@ export class AjouterBenneComponent implements OnInit {
     this.successMessage = '';
 
     const benneData: BenneCreation = {
-      capaciteMax: Number(this.benneForm.value.capaciteMax),
-      typeMateriau: this.benneForm.value.typeMateriau,
-      usure: Number(this.benneForm.value.usure),
-      couleur: this.benneForm.value.couleur || '',
-      description: this.benneForm.value.description || ''
+      nom: this.benneForm.value.nom,
+      immatriculation: this.benneForm.value.immatriculation,
+      capaciteKg: Number(this.benneForm.value.capaciteKg)
     };
 
     this.benneService.create(benneData).subscribe({

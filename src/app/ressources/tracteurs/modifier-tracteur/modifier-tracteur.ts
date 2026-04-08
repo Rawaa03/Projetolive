@@ -35,9 +35,6 @@ export class ModifierTracteurComponent implements OnInit {
   isMobile = false;
   userRole: string = '';
   
-  // Année actuelle pour les validators
-  currentYear = new Date().getFullYear();
-
   constructor(
     private fb: FormBuilder,
     private tracteurService: TracteurService,
@@ -46,17 +43,7 @@ export class ModifierTracteurComponent implements OnInit {
     private cdr: ChangeDetectorRef
   ) {
     this.tracteurForm = this.fb.group({
-      puissanceMoteur: ['', [Validators.required, Validators.min(1)]],
-      consommationCarburant: ['', [Validators.required, Validators.min(0.1)]],
-      kilometrage: [0, [Validators.required, Validators.min(0)]],
-      typeCarburant: ['', Validators.required],
-      remorqueAttachee: [false],
-      marque: [''],
-      modele: [''],
-      annee: ['', [Validators.min(1990), Validators.max(this.currentYear)]],
-      couleur: ['#5A6E1A'],
-      description: [''],
-      enMaintenance: [false]
+      statut: ['DISPONIBLE', Validators.required]
     });
   }
 
@@ -97,17 +84,7 @@ export class ModifierTracteurComponent implements OnInit {
       next: (data: Tracteur) => {
         this.tracteur = data;
         this.tracteurForm.patchValue({
-          puissanceMoteur: data.puissanceMoteur,
-          consommationCarburant: data.consommationCarburant,
-          kilometrage: data.kilometrage,
-          typeCarburant: data.typeCarburant,
-          remorqueAttachee: data.remorqueAttachee,
-          marque: data.marque || '',
-          modele: data.modele || '',
-          annee: data.annee || '',
-          couleur: data.couleur || '#5A6E1A',
-          description: data.description || '',
-          enMaintenance: data.statut === 'MAINTENANCE'
+          statut: data.statut || 'DISPONIBLE'
         });
         this.isLoading = false;
         this.cdr.detectChanges();
@@ -133,17 +110,7 @@ export class ModifierTracteurComponent implements OnInit {
     this.successMessage = '';
 
     const tracteurData: Partial<Tracteur> = {
-      puissanceMoteur: Number(this.tracteurForm.value.puissanceMoteur),
-      consommationCarburant: Number(this.tracteurForm.value.consommationCarburant),
-      kilometrage: Number(this.tracteurForm.value.kilometrage),
-      typeCarburant: this.tracteurForm.value.typeCarburant,
-      remorqueAttachee: this.tracteurForm.value.remorqueAttachee || false,
-      marque: this.tracteurForm.value.marque,
-      modele: this.tracteurForm.value.modele,
-      annee: Number(this.tracteurForm.value.annee),
-      couleur: this.tracteurForm.value.couleur || '',
-      description: this.tracteurForm.value.description || '',
-      statut: this.tracteurForm.value.enMaintenance ? 'MAINTENANCE' : 'DISPONIBLE'
+      statut: this.tracteurForm.value.statut
     };
 
     this.tracteurService.update(this.tracteurId, tracteurData).subscribe({

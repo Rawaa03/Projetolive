@@ -34,9 +34,6 @@ export class ModifierBenneComponent implements OnInit {
   isMobile = false;
   userRole: string = '';
 
-  // Types de matériaux possibles
-  materiaux: string[] = ['OLIVES', 'PLASTIQUE', 'METAL', 'BOIS', 'GENERAL'];
-
   constructor(
     private fb: FormBuilder,
     private benneService: BenneService,
@@ -45,12 +42,7 @@ export class ModifierBenneComponent implements OnInit {
     private cdr: ChangeDetectorRef
   ) {
     this.benneForm = this.fb.group({
-      capaciteMax: ['', [Validators.required, Validators.min(100)]],
-      typeMateriau: ['', Validators.required],
-      usure: [0, [Validators.required, Validators.min(0), Validators.max(100)]],
-      couleur: ['#5A6E1A', Validators.required],
-      description: [''],
-      enMaintenance: [false]
+      statut: ['DISPONIBLE', Validators.required]
     });
   }
 
@@ -91,12 +83,7 @@ export class ModifierBenneComponent implements OnInit {
       next: (data: Benne) => {
         this.benne = data;
         this.benneForm.patchValue({
-          capaciteMax: data.capaciteMax,
-          typeMateriau: data.typeMateriau,
-          usure: data.usure,
-          couleur: data.couleur || '#5A6E1A',
-          description: data.description || '',
-          enMaintenance: data.statut === 'MAINTENANCE'
+          statut: data.statut || 'DISPONIBLE'
         });
         this.isLoading = false;
         this.cdr.detectChanges();
@@ -122,12 +109,7 @@ export class ModifierBenneComponent implements OnInit {
     this.successMessage = '';
 
     const benneData: Partial<Benne> = {
-      capaciteMax: Number(this.benneForm.value.capaciteMax),
-      typeMateriau: this.benneForm.value.typeMateriau,
-      usure: Number(this.benneForm.value.usure),
-      couleur: this.benneForm.value.couleur || '',
-      description: this.benneForm.value.description || '',
-      statut: this.benneForm.value.enMaintenance ? 'MAINTENANCE' : 'DISPONIBLE'
+      statut: this.benneForm.value.statut
     };
 
     this.benneService.update(this.benneId, benneData).subscribe({

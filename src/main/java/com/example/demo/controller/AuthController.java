@@ -61,7 +61,7 @@ public class AuthController {
                 System.out.println("✅ Création d'un compte AGRICULTEUR - Exploitation: " + utilisateur.getNomExploitation());
                 break;
                 
-            case EQUIPE_RECOLTE:
+            case TRAVAILLEUR:
                 if (utilisateur.getCin() == null || utilisateur.getCin().trim().isEmpty()) {
                     throw new RuntimeException("Le CIN est requis pour un travailleur");
                 }

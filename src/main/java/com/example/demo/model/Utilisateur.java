@@ -163,7 +163,7 @@ public class Utilisateur {
      * Calcule le salaire total basé sur le nombre de collectes
      */
     public double calculerSalaireTotal() {
-        if (this.role != Role.EQUIPE_RECOLTE || this.salaire == null) {
+        if (this.role != Role.TRAVAILLEUR || this.salaire == null) {
             return 0.0;
         }
         
@@ -178,7 +178,7 @@ public class Utilisateur {
      * Vérifie si c'est un travailleur saisonnier
      */
     public boolean estSaisonnier() {
-        return this.role == Role.EQUIPE_RECOLTE && 
+        return this.role == Role.TRAVAILLEUR && 
                this.statutEmploye == TypeTravailleur.SAISONNIER;
     }
     
@@ -186,7 +186,7 @@ public class Utilisateur {
      * Vérifie si c'est un travailleur permanent
      */
     public boolean estPermanent() {
-        return this.role == Role.EQUIPE_RECOLTE && 
+        return this.role == Role.TRAVAILLEUR && 
                this.statutEmploye == TypeTravailleur.PERMANENT;
     }
     
@@ -194,7 +194,7 @@ public class Utilisateur {
      * Vérifie si c'est un travailleur
      */
     public boolean estTravailleur() {
-        return this.role == Role.EQUIPE_RECOLTE;
+        return this.role == Role.TRAVAILLEUR;
     }
     
     /**

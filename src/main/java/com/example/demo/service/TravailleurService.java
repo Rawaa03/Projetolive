@@ -19,7 +19,7 @@ public class TravailleurService {
     public Utilisateur creerTravailleur(Utilisateur travailleur) {
         System.out.println("👷 Création d'un travailleur: " + travailleur.getEmail());
         
-        if (travailleur.getRole() != Role.EQUIPE_RECOLTE) {
+        if (travailleur.getRole() != Role.TRAVAILLEUR) {
             throw new RuntimeException("Le rôle doit être EQUIPE_RECOLTE");
         }
         
@@ -40,32 +40,32 @@ public class TravailleurService {
     }
 
     public List<Utilisateur> listerTravailleurs() {
-        return utilisateurRepository.findByRole(Role.EQUIPE_RECOLTE);
+        return utilisateurRepository.findByRole(Role.TRAVAILLEUR);
     }
 
     public List<Utilisateur> listerTravailleursDisponibles() {
-        List<Utilisateur> tousLesTravailleurs = utilisateurRepository.findByRole(Role.EQUIPE_RECOLTE);
+        List<Utilisateur> tousLesTravailleurs = utilisateurRepository.findByRole(Role.TRAVAILLEUR);
         return tousLesTravailleurs.stream()
                 .filter(Utilisateur::isDisponible)
                 .collect(Collectors.toList());
     }
 
     public List<Utilisateur> listerTravailleursDisponiblesPourPeriode(Date dateDebut, Date dateFin) {
-        List<Utilisateur> tousLesTravailleurs = utilisateurRepository.findByRole(Role.EQUIPE_RECOLTE);
+        List<Utilisateur> tousLesTravailleurs = utilisateurRepository.findByRole(Role.TRAVAILLEUR);
         return tousLesTravailleurs.stream()
                 .filter(travailleur -> travailleur.estDisponiblePour(dateDebut, dateFin))
                 .collect(Collectors.toList());
     }
 
     public List<Utilisateur> listerTravailleursParSpecialite(String specialite) {
-        return utilisateurRepository.findByRoleAndSpecialitesContaining(Role.EQUIPE_RECOLTE, specialite);
+        return utilisateurRepository.findByRoleAndSpecialitesContaining(Role.TRAVAILLEUR, specialite);
     }
 
     public Utilisateur trouverTravailleurParId(String id) {
         Utilisateur utilisateur = utilisateurRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Travailleur non trouvé"));
         
-        if (utilisateur.getRole() != Role.EQUIPE_RECOLTE) {
+        if (utilisateur.getRole() != Role.TRAVAILLEUR) {
             throw new RuntimeException("Cet utilisateur n'est pas un travailleur");
         }
         

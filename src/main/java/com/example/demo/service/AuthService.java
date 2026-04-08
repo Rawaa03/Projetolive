@@ -194,7 +194,7 @@ public class AuthService {
                     throw new RuntimeException("Le nom d'exploitation est requis pour un agriculteur");
                 }
                 break;
-            case EQUIPE_RECOLTE:
+            case TRAVAILLEUR:
                 if (utilisateur.getCin() == null || utilisateur.getCin().trim().isEmpty()) {
                     throw new RuntimeException("Le CIN est requis pour un travailleur");
                 }
@@ -270,7 +270,7 @@ public class AuthService {
     }
 
     public List<Utilisateur> getTravailleursEnAttente() {
-        return utilisateurRepository.findByRoleAndCompteActifFalse(Role.EQUIPE_RECOLTE);
+        return utilisateurRepository.findByRoleAndCompteActifFalse(Role.TRAVAILLEUR);
     }
 
     public List<Utilisateur> getTousUtilisateursEnAttente() {
@@ -313,7 +313,7 @@ public class AuthService {
         Utilisateur travailleur = utilisateurRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Travailleur non trouvé"));
         
-        if (travailleur.getRole() != Role.EQUIPE_RECOLTE) {
+        if (travailleur.getRole() != Role.TRAVAILLEUR) {
             throw new RuntimeException("Cet utilisateur n'est pas un travailleur");
         }
         
@@ -361,6 +361,6 @@ public class AuthService {
     }
 
     public long compterTravailleursEnAttente() {
-        return utilisateurRepository.countByRoleAndCompteActifFalse(Role.EQUIPE_RECOLTE);
+        return utilisateurRepository.countByRoleAndCompteActifFalse(Role.TRAVAILLEUR);
     }
 }

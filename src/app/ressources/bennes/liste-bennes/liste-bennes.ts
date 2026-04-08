@@ -20,7 +20,7 @@ export class ListeBennesComponent implements OnInit {
   isLoading = true;
   errorMessage = '';
   selectedStatut: string = 'TOUS';
-  selectedDisponibilite: string = 'TOUS';
+  filteredBennes: Benne[] = [];
 
   // Propriétés pour la sidebar
   isSidebarCollapsed = false;
@@ -28,7 +28,8 @@ export class ListeBennesComponent implements OnInit {
   userRole: string = '';
 
   statuts: string[] = ['TOUS', 'DISPONIBLE', 'EN_USE', 'MAINTENANCE', 'HORS_SERVICE'];
-  disponibilites: string[] = ['TOUS', 'DISPONIBLE', 'INDISPONIBLE'];
+  successMessage: string = '';
+  deleteConfirmId: string | null = null;
 
   constructor(private benneService: BenneService, public router: Router, private cdr: ChangeDetectorRef) {}
 
@@ -65,9 +66,11 @@ export class ListeBennesComponent implements OnInit {
   loadBennes(): void {
     this.isLoading = true;
     this.errorMessage = '';
+    this.successMessage = '';
     this.benneService.getAll().subscribe({
       next: (data: Benne[]) => {
         this.bennes = data || [];
+        this.applyFilters();
         this.isLoading = false;
         this.cdr.detectChanges();
       },
@@ -75,38 +78,21 @@ export class ListeBennesComponent implements OnInit {
         this.errorMessage = err.message || 'Erreur lors du chargement des bennes';
         this.isLoading = false;
         this.cdr.detectChanges();
-        console.error('Erreur:', err);
       }
     });
   }
 
-  filterBennes(): void {
-    this.isLoading = true;
-    this.benneService.getAll().subscribe({
-      next: (data: Benne[]) => {
-        let filteredBennes = [...data];
-
-        if (this.selectedStatut !== 'TOUS') {
-          filteredBennes = filteredBennes.filter(b => b.statut === this.selectedStatut);
-        }
-
-        if (this.selectedDisponibilite !== 'TOUS') {
-          if (this.selectedDisponibilite === 'DISPONIBLE') {
-            filteredBennes = filteredBennes.filter(b => b.statut === 'DISPONIBLE' && !b.tourneeId);
-          } else {
-            filteredBennes = filteredBennes.filter(b => b.statut !== 'DISPONIBLE' || b.tourneeId);
-          }
-        }
-
-        this.bennes = filteredBennes;
-        this.isLoading = false;
-      },
-      error: (err: HttpErrorResponse) => {
-        this.errorMessage = err.message || 'Erreur lors du filtrage des bennes';
-        this.isLoading = false;
-        console.error('Erreur:', err);
+  applyFilters(): void {
+    this.filteredBennes = this.bennes.filter(benne => {
+      if (this.selectedStatut !== 'TOUS' && benne.statut !== this.selectedStatut) {
+        return false;
       }
+      return true;
     });
+  }
+
+  onFilterChange(): void {
+    this.applyFilters();
   }
 
   chargerBenne(id: string): void {
@@ -159,15 +145,27 @@ export class ListeBennesComponent implements OnInit {
   }
 
   deleteBenne(id: string): void {
-    if (confirm('Voulez-vous vraiment supprimer cette benne ?')) {
-      this.benneService.delete(id).subscribe({
-        next: () => this.loadBennes(),
+    this.deleteConfirmId = id;
+  }
+
+  confirmDelete(): void {
+    if (this.deleteConfirmId) {
+      this.benneService.delete(this.deleteConfirmId).subscribe({
+        next: () => {
+          this.successMessage = 'Benne supprimée avec succès';
+          this.deleteConfirmId = null;
+          setTimeout(() => this.loadBennes(), 500);
+        },
         error: (err: HttpErrorResponse) => {
-          this.errorMessage = err.message || 'Erreur lors de la suppression de la benne';
-          console.error('Erreur:', err);
+          this.errorMessage = err.message || 'Erreur lors de la suppression';
+          this.deleteConfirmId = null;
         }
       });
     }
+  }
+
+  cancelDelete(): void {
+    this.deleteConfirmId = null;
   }
 
   navigateToAdd(): void {

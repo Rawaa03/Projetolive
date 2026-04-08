@@ -17,11 +17,12 @@ import { SideBarResponsable } from '../../../sidebar-responsable/sidebar-respons
 })
 export class ListeTracteursComponent implements OnInit {
   tracteurs: Tracteur[] = [];
+  filteredTracteurs: Tracteur[] = [];
   isLoading = true;
   errorMessage = '';
+  successMessage = '';
   selectedStatut: string = 'TOUS';
-  selectedDisponibilite: string = 'TOUS';
-  selectedCarburant: string = 'TOUS';
+  deleteConfirmId: string | null = null;
 
   // Propriétés pour la sidebar
   isSidebarCollapsed = false;
@@ -29,7 +30,6 @@ export class ListeTracteursComponent implements OnInit {
   userRole: string = '';
 
   statuts: string[] = ['TOUS', 'DISPONIBLE', 'EN_USE', 'MAINTENANCE', 'HORS_SERVICE'];
-  disponibilites: string[] = ['TOUS', 'DISPONIBLE', 'INDISPONIBLE'];
   carburants: string[] = ['TOUS', 'DIESEL', 'ESSENCE', 'ELECTRIQUE', 'HYBRIDE'];
 
   constructor(private tracteurService: TracteurService, public router: Router, private cdr: ChangeDetectorRef) {}
@@ -66,9 +66,12 @@ export class ListeTracteursComponent implements OnInit {
 
   loadTracteurs(): void {
     this.isLoading = true;
+    this.errorMessage = '';
+    this.successMessage = '';
     this.tracteurService.getAll().subscribe({
       next: (data: Tracteur[]) => {
         this.tracteurs = data || [];
+        this.applyFilters();
         this.isLoading = false;
         this.cdr.detectChanges();
       },
@@ -76,42 +79,21 @@ export class ListeTracteursComponent implements OnInit {
         this.errorMessage = err.message || 'Erreur lors du chargement des tracteurs';
         this.isLoading = false;
         this.cdr.detectChanges();
-        console.error('Erreur:', err);
       }
     });
   }
 
-  filterTracteurs(): void {
-    this.isLoading = true;
-    this.tracteurService.getAll().subscribe({
-      next: (data: Tracteur[]) => {
-        let filteredTracteurs = [...data];
-
-        if (this.selectedStatut !== 'TOUS') {
-          filteredTracteurs = filteredTracteurs.filter(t => t.statut === this.selectedStatut);
-        }
-
-        if (this.selectedDisponibilite !== 'TOUS') {
-          if (this.selectedDisponibilite === 'DISPONIBLE') {
-            filteredTracteurs = filteredTracteurs.filter(t => t.statut === 'DISPONIBLE' && !t.tourneeId);
-          } else {
-            filteredTracteurs = filteredTracteurs.filter(t => t.statut !== 'DISPONIBLE' || t.tourneeId);
-          }
-        }
-
-        if (this.selectedCarburant !== 'TOUS') {
-          filteredTracteurs = filteredTracteurs.filter(t => t.typeCarburant === this.selectedCarburant);
-        }
-
-        this.tracteurs = filteredTracteurs;
-        this.isLoading = false;
-      },
-      error: (err: HttpErrorResponse) => {
-        this.errorMessage = err.message || 'Erreur lors du filtrage des tracteurs';
-        this.isLoading = false;
-        console.error('Erreur:', err);
+  applyFilters(): void {
+    this.filteredTracteurs = this.tracteurs.filter(tracteur => {
+      if (this.selectedStatut !== 'TOUS' && tracteur.statut !== this.selectedStatut) {
+        return false;
       }
+      return true;
     });
+  }
+
+  onFilterChange(): void {
+    this.applyFilters();
   }
 
   updateKilometrage(id: string): void {
@@ -179,15 +161,27 @@ export class ListeTracteursComponent implements OnInit {
   }
 
   deleteTracteur(id: string): void {
-    if (confirm('Voulez-vous vraiment supprimer ce tracteur ?')) {
-      this.tracteurService.delete(id).subscribe({
-        next: () => this.loadTracteurs(),
+    this.deleteConfirmId = id;
+  }
+
+  confirmDelete(): void {
+    if (this.deleteConfirmId) {
+      this.tracteurService.delete(this.deleteConfirmId).subscribe({
+        next: () => {
+          this.successMessage = 'Tracteur supprimé avec succès';
+          this.deleteConfirmId = null;
+          setTimeout(() => this.loadTracteurs(), 500);
+        },
         error: (err: HttpErrorResponse) => {
-          this.errorMessage = err.message || 'Erreur lors de la suppression du tracteur';
-          console.error('Erreur:', err);
+          this.errorMessage = err.message || 'Erreur lors de la suppression';
+          this.deleteConfirmId = null;
         }
       });
     }
+  }
+
+  cancelDelete(): void {
+    this.deleteConfirmId = null;
   }
 
   navigateToAdd(): void {

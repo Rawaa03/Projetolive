@@ -76,11 +76,8 @@
           <!-- Filtres et bouton d'ajout -->
           <div class="search-actions" style="display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; align-items: center;">
             <div class="filter-group" style="display: flex; gap: 1rem; flex-wrap: wrap; flex: 1;">
-              <select [(ngModel)]="selectedStatut" (change)="filterTracteurs()" class="form-control" style="flex: 1; min-width: 150px;">
+              <select [(ngModel)]="selectedStatut" (change)="onFilterChange()" class="form-control" style="flex: 1; min-width: 150px;">
                 <option *ngFor="let s of statuts" [value]="s">{{ s === 'TOUS' ? 'Tous les statuts' : s }}</option>
-              </select>
-              <select [(ngModel)]="selectedCarburant" (change)="filterTracteurs()" class="form-control" style="flex: 1; min-width: 150px;">
-                <option *ngFor="let c of carburants" [value]="c">{{ c === 'TOUS' ? 'Tous les carburants' : c }}</option>
               </select>
             </div>
             <button class="btn-add" (click)="navigateToAdd()" style="background: linear-gradient(135deg, #5A6E1A, #A8B84B); color: white; border: none; padding: 0.85rem 1.8rem; border-radius: 50px; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
@@ -100,37 +97,49 @@
             <p>Chargement des tracteurs...</p>
           </div>
 
+          <!-- Message de succès -->
+          <div *ngIf="successMessage" class="oh-success" style="background: #D4EDDA; color: #155724; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+            <i class="bi bi-check-circle-fill me-2"></i> {{ successMessage }}
+          </div>
+
           <!-- Tableau -->
-          <div *ngIf="!isLoading && tracteurs.length > 0" class="table-responsive" style="overflow-x: auto;">
+          <div *ngIf="!isLoading && filteredTracteurs.length > 0" class="table-responsive" style="overflow-x: auto;">
             <table style="width: 100%; border-collapse: collapse;">
               <thead>
                 <tr style="border-bottom: 2px solid rgba(168, 184, 75, 0.2);">
-                  <th style="text-align: left; padding: 1rem 0.75rem; background: #F9F6EB; color: #5A5A48; font-weight: 600;">ID</th>
+                  <th style="text-align: left; padding: 1rem 0.75rem; background: #F9F6EB; color: #5A5A48; font-weight: 600;">Immatriculation</th>
                   <th style="text-align: left; padding: 1rem 0.75rem; background: #F9F6EB; color: #5A5A48; font-weight: 600;">Marque</th>
+                  <th style="text-align: left; padding: 1rem 0.75rem; background: #F9F6EB; color: #5A5A48; font-weight: 600;">Puissance</th>
                   <th style="text-align: left; padding: 1rem 0.75rem; background: #F9F6EB; color: #5A5A48; font-weight: 600;">Carburant</th>
-                  <th style="text-align: left; padding: 1rem 0.75rem; background: #F9F6EB; color: #5A5A48; font-weight: 600;">Kilométrage</th>
                   <th style="text-align: left; padding: 1rem 0.75rem; background: #F9F6EB; color: #5A5A48; font-weight: 600;">Statut</th>
                   <th style="text-align: left; padding: 1rem 0.75rem; background: #F9F6EB; color: #5A5A48; font-weight: 600;">Actions</th>
                  </thead>
               <tbody>
-                <tr *ngFor="let t of tracteurs" style="border-bottom: 1px solid rgba(168, 184, 75, 0.15);">
-                  <td style="padding: 1rem 0.75rem;">{{ t.id?.substring(0, 6) }}</td>
+                <tr *ngFor="let t of filteredTracteurs" style="border-bottom: 1px solid rgba(168, 184, 75, 0.15);">
+                  <td style="padding: 1rem 0.75rem; font-weight: 600;">{{ t.immatriculation }}</td>
                   <td style="padding: 1rem 0.75rem;">{{ t.marque }} {{ t.modele }}</td>
+                  <td style="padding: 1rem 0.75rem;">{{ t.puissanceMoteur }} ch</td>
                   <td style="padding: 1rem 0.75rem;">{{ t.typeCarburant }}</td>
-                  <td style="padding: 1rem 0.75rem;">{{ t.kilometrage }} km</td>
                   <td style="padding: 1rem 0.75rem;">
-                    <span [ngClass]="{'bg-success': t.statut === 'DISPONIBLE', 'bg-warning text-dark': t.statut === 'EN_USE', 'bg-danger': t.statut === 'MAINTENANCE'}" style="display: inline-block; padding: 4px 12px; border-radius: 50px; font-size: 0.75rem; font-weight: 600;">
+                    <span [ngClass]="{'bg-success': t.statut === 'DISPONIBLE', 'bg-warning text-dark': t.statut === 'EN_USE', 'bg-danger': t.statut === 'MAINTENANCE', 'bg-secondary': t.statut === 'HORS_SERVICE'}" style="display: inline-block; padding: 4px 12px; border-radius: 50px; font-size: 0.75rem; font-weight: 600;">
                       {{ t.statut }}
                     </span>
                   </td>
                   <td style="padding: 1rem 0.75rem;">
-                    <div style="display: flex; gap: 1rem;">
-                      <button class="btn-edit" (click)="navigateToEdit(t.id!)" style="background: #F0F4D8; color: #5A6E1A; padding: 0.75rem 1.5rem; border-radius: 12px; border: none; cursor: pointer; font-size: 0.9rem; font-weight: 600;">
-                        <i class="bi bi-pencil"></i> Modifier
+                    <div style="display: flex; gap: 0.5rem;">
+                      <button class="btn-edit" (click)="navigateToEdit(t.id!)" style="background: #F0F4D8; color: #5A6E1A; padding: 0.5rem 1rem; border-radius: 8px; border: none; cursor: pointer; font-size: 0.85rem; font-weight: 600;">
+                        ✎ Modifier
                       </button>
-                      <button class="btn-delete" (click)="deleteTracteur(t.id!)" style="background: #F5E0D8; color: #8A2A1A; padding: 0.75rem 1.5rem; border-radius: 12px; border: none; cursor: pointer; font-size: 0.9rem; font-weight: 600;">
-                        <i class="bi bi-trash"></i> Supprimer
+                      <button class="btn-delete" (click)="deleteTracteur(t.id!)" style="background: #F5E0D8; color: #8A2A1A; padding: 0.5rem 1rem; border-radius: 8px; border: none; cursor: pointer; font-size: 0.85rem; font-weight: 600;">
+                        🗑 Supprimer
                       </button>
+                    </div>
+                    <div *ngIf="deleteConfirmId === t.id" style="margin-top: 0.5rem; padding: 0.75rem; background: #FFF3CD; border-radius: 8px;">
+                      <p style="margin: 0.5rem 0; font-size: 0.85rem; font-weight: 600;">Confirmer suppression?</p>
+                      <div style="display: flex; gap: 0.5rem;">
+                        <button (click)="confirmDelete()" style="background: #D32F2F; color: white; padding: 0.4rem 0.8rem; border-radius: 6px; border: none; cursor: pointer; font-size: 0.8rem;">Oui</button>
+                        <button (click)="cancelDelete()" style="background: #757575; color: white; padding: 0.4rem 0.8rem; border-radius: 6px; border: none; cursor: pointer; font-size: 0.8rem;">Non</button>
+                      </div>
                     </div>
                   </td>
                 </tr>
@@ -139,7 +148,7 @@
           </div>
 
           <!-- Aucun résultat -->
-          <div *ngIf="!isLoading && tracteurs.length === 0" class="oh-state" style="text-align: center; padding: 4rem 2rem;">
+          <div *ngIf="!isLoading && filteredTracteurs.length === 0" class="oh-state" style="text-align: center; padding: 4rem 2rem;">
             <i class="bi bi-box-seam" style="font-size: 3.5rem; color: #A8B84B; opacity: 0.6;"></i>
             <p style="font-size: 1.1rem; font-weight: 600; color: #5A5A48; margin-top: 1rem;">Aucun tracteur trouvé</p>
             <p style="font-size: 0.9rem; color: #7A6845;">Ajoutez un nouveau tracteur pour commencer</p>

@@ -25,10 +25,9 @@ export class BenneService {
   }
 
   create(benne: BenneCreation): Observable<Benne> {
-    // Convert frontend format to backend format
     const ressourceData = {
       type: 'BENNE',
-      nom: `Benne ${new Date().toLocaleDateString()}`,
+      nom: benne.description || `Benne ${new Date().toLocaleDateString()}`,
       capaciteKg: benne.capaciteMax,
       tauxRemplissage: 0,
       estPleine: false,
@@ -36,20 +35,22 @@ export class BenneService {
       statut: 'DISPONIBLE',
       immatriculation: `BENNE-${Date.now()}`
     };
-    console.log('[v0] Sending to backend:', ressourceData);
     return this.http.post<Benne>(this.apiUrl, ressourceData).pipe(
       catchError(this.handleError)
     );
   }
 
   update(id: string, benne: Partial<Benne>): Observable<Benne> {
-    // Convert field names for backend
-    const updateData: any = { ...benne };
+    const updateData: any = {};
     if (benne.capaciteMax !== undefined) {
       updateData.capaciteKg = benne.capaciteMax;
-      delete updateData.capaciteMax;
     }
-    console.log('[v0] Updating benne with:', updateData);
+    if (benne.statut !== undefined) {
+      updateData.statut = benne.statut;
+    }
+    if (benne.description !== undefined) {
+      updateData.nom = benne.description;
+    }
     return this.http.put<Benne>(`${this.apiUrl}/${id}`, updateData).pipe(
       catchError(this.handleError)
     );

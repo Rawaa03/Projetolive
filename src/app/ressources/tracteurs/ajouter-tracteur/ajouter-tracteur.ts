@@ -1,5 +1,5 @@
 // src/app/ressources/tracteurs/ajouter-tracteur/ajouter-tracteur.ts
-import { Component, OnInit, HostListener } from '@angular/core';
+import { Component, OnInit, HostListener, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { ReactiveFormsModule, FormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -39,7 +39,8 @@ export class AjouterTracteurComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private tracteurService: TracteurService,
-    private router: Router
+    private router: Router,
+    private cdr: ChangeDetectorRef
   ) {
     this.tracteurForm = this.fb.group({
       puissanceMoteur: ['', [Validators.required, Validators.min(1)]],
@@ -87,6 +88,7 @@ export class AjouterTracteurComponent implements OnInit {
   onSubmit(): void {
     if (this.tracteurForm.invalid) {
       this.errorMessage = 'Veuillez remplir tous les champs obligatoires';
+      this.cdr.detectChanges();
       return;
     }
 
@@ -111,6 +113,7 @@ export class AjouterTracteurComponent implements OnInit {
       next: (response) => {
         this.isLoading = false;
         this.successMessage = 'Tracteur ajouté avec succès !';
+        this.cdr.detectChanges();
         setTimeout(() => {
           this.router.navigate(['/ressources/tracteurs']);
         }, 1500);
@@ -118,6 +121,7 @@ export class AjouterTracteurComponent implements OnInit {
       error: (err: HttpErrorResponse) => {
         this.isLoading = false;
         this.errorMessage = err.message || 'Erreur lors de l\'ajout du tracteur';
+        this.cdr.detectChanges();
         console.error('Erreur:', err);
       }
     });

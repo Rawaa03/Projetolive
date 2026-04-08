@@ -109,17 +109,28 @@
                 <tr style="border-bottom: 2px solid rgba(168, 184, 75, 0.2);">
                   <th style="text-align: left; padding: 1rem 0.75rem; background: #F9F6EB; color: #5A5A48; font-weight: 600;">Immatriculation</th>
                   <th style="text-align: left; padding: 1rem 0.75rem; background: #F9F6EB; color: #5A5A48; font-weight: 600;">Marque</th>
+                  <th style="text-align: left; padding: 1rem 0.75rem; background: #F9F6EB; color: #5A5A48; font-weight: 600;">Modèle</th>
+                  <th style="text-align: left; padding: 1rem 0.75rem; background: #F9F6EB; color: #5A5A48; font-weight: 600;">Année</th>
                   <th style="text-align: left; padding: 1rem 0.75rem; background: #F9F6EB; color: #5A5A48; font-weight: 600;">Puissance</th>
                   <th style="text-align: left; padding: 1rem 0.75rem; background: #F9F6EB; color: #5A5A48; font-weight: 600;">Carburant</th>
+                  <th style="text-align: left; padding: 1rem 0.75rem; background: #F9F6EB; color: #5A5A48; font-weight: 600;">Couleur</th>
                   <th style="text-align: left; padding: 1rem 0.75rem; background: #F9F6EB; color: #5A5A48; font-weight: 600;">Statut</th>
                   <th style="text-align: left; padding: 1rem 0.75rem; background: #F9F6EB; color: #5A5A48; font-weight: 600;">Actions</th>
                  </thead>
               <tbody>
                 <tr *ngFor="let t of filteredTracteurs" style="border-bottom: 1px solid rgba(168, 184, 75, 0.15);">
                   <td style="padding: 1rem 0.75rem; font-weight: 600;">{{ t.id?.substring(0, 8) }}</td>
-                  <td style="padding: 1rem 0.75rem;">{{ t.marque }} {{ t.modele }}</td>
+                  <td style="padding: 1rem 0.75rem;">{{ t.marque }}</td>
+                  <td style="padding: 1rem 0.75rem;">{{ t.modele }}</td>
+                  <td style="padding: 1rem 0.75rem;">{{ t.annee }}</td>
                   <td style="padding: 1rem 0.75rem;">{{ t.puissanceMoteur }} ch</td>
                   <td style="padding: 1rem 0.75rem;">{{ t.typeCarburant }}</td>
+                  <td style="padding: 1rem 0.75rem;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                      <div style="width: 24px; height: 24px; border-radius: 4px; border: 2px solid #E0E0E0;" [style.background-color]="t.couleur"></div>
+                      <span style="font-size: 0.8rem; font-family: monospace; color: #666;">{{ t.couleur }}</span>
+                    </div>
+                  </td>
                   <td style="padding: 1rem 0.75rem;">
                     <span [ngClass]="{'bg-success': t.statut === 'DISPONIBLE', 'bg-warning text-dark': t.statut === 'EN_USE', 'bg-danger': t.statut === 'MAINTENANCE', 'bg-secondary': t.statut === 'HORS_SERVICE'}" style="display: inline-block; padding: 4px 12px; border-radius: 50px; font-size: 0.75rem; font-weight: 600;">
                       {{ t.statut }}

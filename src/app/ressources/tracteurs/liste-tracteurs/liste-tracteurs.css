@@ -1,2 +1,80 @@
 /* Imported from ressources.css */
 @import '../../../ressources/ressources.css';
+
+/* Layout Adjustments for List Page */
+.app-layout {
+  display: flex;
+  width: 100%;
+  min-height: 100vh;
+}
+
+.main-content {
+  flex: 1;
+  margin-left: 280px;
+  transition: margin-left 0.3s ease;
+  position: relative;
+}
+
+.main-content.sidebar-collapsed {
+  margin-left: 80px;
+}
+
+.oh-card {
+  margin-left: 0 !important;
+}
+
+/* Table Styling */
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+thead tr {
+  border-bottom: 2px solid rgba(168, 184, 75, 0.2);
+  background: #F9F6EB;
+}
+
+thead th {
+  text-align: left;
+  padding: 1rem 0.75rem;
+  color: #5A5A48;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+tbody tr {
+  border-bottom: 1px solid rgba(168, 184, 75, 0.15);
+  transition: background-color 0.2s ease;
+}
+
+tbody tr:hover {
+  background-color: rgba(168, 184, 75, 0.05);
+}
+
+tbody td {
+  padding: 1rem 0.75rem;
+  font-size: 0.9rem;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .main-content {
+    margin-left: 0;
+  }
+  
+  .oh-card {
+    max-width: 100% !important;
+  }
+  
+  .table-responsive {
+    font-size: 0.8rem;
+  }
+  
+  thead th {
+    padding: 0.75rem 0.5rem;
+  }
+  
+  tbody td {
+    padding: 0.75rem 0.5rem;
+  }
+}

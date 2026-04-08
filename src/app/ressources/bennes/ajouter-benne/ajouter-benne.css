@@ -1,2 +1,35 @@
 /* Imported from ressources.css */
 @import '../../../ressources/ressources.css';
+
+/* Layout Adjustments for Add Page */
+.app-layout {
+  display: flex;
+  width: 100%;
+  min-height: 100vh;
+}
+
+.main-content {
+  flex: 1;
+  margin-left: 280px;
+  transition: margin-left 0.3s ease;
+  position: relative;
+}
+
+.main-content.sidebar-collapsed {
+  margin-left: 80px;
+}
+
+.oh-card {
+  margin-left: 0 !important;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .main-content {
+    margin-left: 0;
+  }
+  
+  .oh-card {
+    max-width: 100% !important;
+  }
+}

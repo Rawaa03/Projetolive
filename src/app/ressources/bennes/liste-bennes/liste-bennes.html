@@ -110,13 +110,13 @@
                  </thead>
               <tbody>
                 <tr *ngFor="let b of filteredBennes" style="border-bottom: 1px solid rgba(168, 184, 75, 0.15);">
-                  <td style="padding: 1rem 0.75rem; font-weight: 600;">{{ b.immatriculation }}</td>
-                  <td style="padding: 1rem 0.75rem;">{{ b.capaciteKg | number }} kg</td>
+                  <td style="padding: 1rem 0.75rem; font-weight: 600;">{{ b.id?.substring(0, 8) }}</td>
+                  <td style="padding: 1rem 0.75rem;">{{ b.capaciteMax | number }} kg</td>
                   <td style="padding: 1rem 0.75rem;">
                     <div style="background: #F0F4D8; border-radius: 8px; overflow: hidden; height: 24px; width: 100px;">
-                      <div style="background: #A8B84B; height: 100%;" [ngStyle]="{'width': b.tauxRemplissage + '%'}"></div>
+                      <div style="background: #A8B84B; height: 100%;" [ngStyle]="{'width': b.pourcentageRemplissage + '%'}"></div>
                     </div>
-                    {{ b.tauxRemplissage }}%
+                    {{ b.pourcentageRemplissage }}%
                   </td>
                   <td style="padding: 1rem 0.75rem;">
                     <span [ngClass]="{'bg-success': b.statut === 'DISPONIBLE', 'bg-warning text-dark': b.statut === 'EN_USE', 'bg-danger': b.statut === 'MAINTENANCE', 'bg-secondary': b.statut === 'HORS_SERVICE'}" style="display: inline-block; padding: 4px 12px; border-radius: 50px; font-size: 0.75rem; font-weight: 600;">

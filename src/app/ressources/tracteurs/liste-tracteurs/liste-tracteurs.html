@@ -116,7 +116,7 @@
                  </thead>
               <tbody>
                 <tr *ngFor="let t of filteredTracteurs" style="border-bottom: 1px solid rgba(168, 184, 75, 0.15);">
-                  <td style="padding: 1rem 0.75rem; font-weight: 600;">{{ t.immatriculation }}</td>
+                  <td style="padding: 1rem 0.75rem; font-weight: 600;">{{ t.id?.substring(0, 8) }}</td>
                   <td style="padding: 1rem 0.75rem;">{{ t.marque }} {{ t.modele }}</td>
                   <td style="padding: 1rem 0.75rem;">{{ t.puissanceMoteur }} ch</td>
                   <td style="padding: 1rem 0.75rem;">{{ t.typeCarburant }}</td>

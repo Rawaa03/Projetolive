@@ -21,34 +21,38 @@ public class TourneeResponse {
     private String vergerAgriculteurNom;
     private Double vergerSuperficie;
 
-    // Resources
+    // Benne info
     private String benneId;
     private String benneNom;
     private Double benneCapaciteKg;
 
+    // Tracteur info
     private String tracteurId;
     private String tracteurNom;
     private String tracteurImmatriculation;
 
+    // Travailleurs
     private List<String> travailleurIds;
-    private List<String> travailleurNoms;   // convenience: "Prénom Nom"
+    private List<String> travailleurNoms;
+
+    // Planning window (planned or actual after demarrer/terminer)
+    private Date dateDebut;
+    private Date dateFin;
 
     // Field data
     private Integer nbreArbre;
-    private Double distanceTotale;
-    private Integer tempsTotal;             // minutes
+    private Double  distanceTotale;
+    private Integer tempsTotal;         // minutes, set on terminer
 
     // Harvest result
-    private Double quantiteCollecteeKg;
+    private Double  quantiteCollecteeKg;
     private Boolean collecteFinalisee;
-    private Double efficacite;             // 0-100, computed on-the-fly
+    private Double  efficacite;         // 0–100
 
     // Metadata
     private String observations;
-    private Date dateDebut;
-    private Date dateFin;
-    private Date dateCreation;
+    private Date   dateCreation;
 
     // Verger aggregate
-    private Double totalCollecteVergerKg;  // sum of all terminated tournées of same verger
+    private Double totalCollecteVergerKg;  // sum of all TERMINEE tournées for same verger
 }

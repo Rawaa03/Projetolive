@@ -31,29 +31,39 @@ public class Tournee {
     private StatutTournee statut;   // PLANIFIEE | EN_COURS | TERMINEE | ANNULEE
 
     @DocumentReference(lazy = true)
-    private Verger verger;          // one verger per tournée
+    private Verger verger;
 
     @DocumentReference(lazy = true)
-    private Ressource benne;        // the benne used for this tournée
+    private Ressource benne;
 
     @DocumentReference(lazy = true)
-    private Ressource tracteur;     // the tracteur used for this tournée
+    private Ressource tracteur;
 
     @DocumentReference(lazy = true)
     @Builder.Default
-    private List<Utilisateur> travailleurs = new ArrayList<>();  // one or more workers
+    private List<Utilisateur> travailleurs = new ArrayList<>();
 
+    /**
+     * Planned start date (set at creation, updated when demarrer() is called).
+     * Used for availability overlap checks.
+     */
     private Date dateDebut;
+
+    /**
+     * Planned / actual end date.
+     * Set at creation as the estimated end; overwritten with the real time on terminer().
+     * Used for availability overlap checks.
+     */
     private Date dateFin;
 
     @Builder.Default
     private Integer nbreArbre = NB_ARBRES_PAR_TOURNEE;
 
     private Double distanceTotale;      // km
-    private Integer tempsTotal;         // minutes (dateDebut → dateFin)
+    private Integer tempsTotal;         // minutes (actual dateDebut → actual dateFin)
 
-    private Double quantiteCollecteeKg; // actual kg harvested this tournée
-    private Boolean collecteFinalisee;  // true once tournée is TERMINEE
+    private Double quantiteCollecteeKg;
+    private Boolean collecteFinalisee;
 
     private String observations;
 

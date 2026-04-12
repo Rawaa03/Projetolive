@@ -14,8 +14,6 @@ public class BenneService {
     @Autowired private RessourceRepository ressourceRepository;
     @Autowired private RessourceService    ressourceService;
 
-    // ── CRUD ──────────────────────────────────────────────────────
-
     public Ressource creerBenne(Ressource benne) {
         benne.setType(TypeRessource.BENNE);
         if (benne.getCapaciteKg() == null || benne.getCapaciteKg() <= 0)
@@ -52,8 +50,6 @@ public class BenneService {
         ressourceRepository.delete(getBenneById(id));
     }
 
-    // ── Load management ───────────────────────────────────────────
-
     public Ressource ajouterCharge(String id, Double quantite) {
         if (quantite == null || quantite <= 0)
             throw new RuntimeException("La quantité à ajouter doit être positive");
@@ -61,7 +57,7 @@ public class BenneService {
         try {
             benne.ajouterCharge(quantite);
         } catch (IllegalArgumentException e) {
-            throw new RuntimeException("Erreur lors de l'ajout de charge : " + e.getMessage());
+            throw new RuntimeException("Erreur : " + e.getMessage());
         }
         return ressourceRepository.save(benne);
     }
@@ -71,8 +67,6 @@ public class BenneService {
         benne.vider();
         return ressourceRepository.save(benne);
     }
-
-    // ── Maintenance ───────────────────────────────────────────────
 
     public Ressource enregistrerMaintenance(String id, String description, Double cout) {
         Ressource benne = getBenneById(id);
@@ -88,41 +82,23 @@ public class BenneService {
         return ressourceRepository.save(benne);
     }
 
-    // ── Tractor assignment ────────────────────────────────────────
-
+    /** Attach a tracteur object to this benne. */
     public Ressource assignerTracteur(String benneId, String tracteurId) {
-        Ressource benne = getBenneById(benneId);
+        Ressource benne   = getBenneById(benneId);
         Ressource tracteur = ressourceService.getRessourceById(tracteurId);
         if (tracteur.getType() != TypeRessource.TRACTEUR)
             throw new RuntimeException("Cette ressource n'est pas un tracteur");
-        benne.setTracteurAttacheId(tracteurId);
+        benne.setTracteur(tracteur);   // object, not ID
         return ressourceRepository.save(benne);
     }
 
     public Ressource retirerTracteur(String benneId) {
         Ressource benne = getBenneById(benneId);
-        benne.setTracteurAttacheId(null);
+        benne.setTracteur(null);
         return ressourceRepository.save(benne);
     }
 
     public List<Ressource> listerBennesDuTracteur(String tracteurId) {
-        return ressourceRepository.findBennesByTracteur(tracteurId);
-    }
-
-    // ── Stats ─────────────────────────────────────────────────────
-
-    public Map<String, Object> obtenirStatistiques(String id) {
-        Ressource benne = getBenneById(id);
-        Map<String, Object> stats = new LinkedHashMap<>();
-        stats.put("id",                benne.getId());
-        stats.put("nom",               benne.getNom());
-        stats.put("statut",            benne.getStatut());
-        stats.put("capaciteMax",       benne.getCapaciteKg());
-        stats.put("quantiteActuelle",  benne.getQuantiteChargeeActuelle());
-        stats.put("tauxRemplissage",   benne.getTauxRemplissage());
-        stats.put("estPleine",         benne.getEstPleine());
-        stats.put("tracteurAssigne",   benne.getTracteurAttacheId());
-        stats.put("nombreTournees",    benne.getNombreTournees());
-        return stats;
+        return ressourceRepository.findBennesByTracteurId(tracteurId);
     }
 }

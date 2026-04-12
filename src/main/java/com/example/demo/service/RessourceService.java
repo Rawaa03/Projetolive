@@ -26,8 +26,15 @@ public class RessourceService {
         if (ressource.getStatut() == null) {
             ressource.setStatut("DISPONIBLE");
         }
-        if (ressource.getType() == TypeRessource.BENNE)    validateBenne(ressource);
-        if (ressource.getType() == TypeRessource.TRACTEUR) validateTracteur(ressource);
+
+        if (ressource.getType() == TypeRessource.BENNE) {
+            validateBenne(ressource);
+        }
+
+        if (ressource.getType() == TypeRessource.TRACTEUR) {
+            validateTracteur(ressource);
+        }
+
         return ressourceRepository.save(ressource);
     }
 
@@ -42,21 +49,31 @@ public class RessourceService {
 
     public Ressource mettreAJourRessource(String id, Ressource update) {
         Ressource existant = getRessourceById(id);
+
         existant.setNom(update.getNom());
         existant.setStatut(update.getStatut());
         existant.setImmatriculation(update.getImmatriculation());
 
         if (existant.getType() == TypeRessource.BENNE) {
-            existant.setCapaciteKg(update.getCapaciteKg());
-            existant.setTracteurAttacheId(update.getTracteurAttacheId());
+            if (update.getCapaciteKg() != null) {
+                existant.setCapaciteKg(update.getCapaciteKg());
+            }
+            // ✅ object reference (NOT ID)
+            existant.setTracteur(update.getTracteur());
+
         } else if (existant.getType() == TypeRessource.TRACTEUR) {
+
             existant.setPuissance(update.getPuissance());
             existant.setCarburant(update.getCarburant());
             existant.setConsommationHoraire(update.getConsommationHoraire());
             existant.setKilometrage(update.getKilometrage());
-            existant.setConducteurId(update.getConducteurId());
+
+            // ✅ object reference (NOT ID)
+            existant.setConducteur(update.getConducteur());
+
             existant.setARemorque(update.getARemorque());
         }
+
         return ressourceRepository.save(existant);
     }
 
@@ -66,9 +83,18 @@ public class RessourceService {
 
     // ── Search ────────────────────────────────────────────────────
 
-    public List<Ressource> listerBennes()    { return ressourceRepository.findAllBennes(); }
-    public List<Ressource> listerTracteurs() { return ressourceRepository.findAllTracteurs(); }
-    public List<Ressource> listerDisponibles() { return ressourceRepository.findAllAvailable(); }
+    public List<Ressource> listerBennes() {
+        return ressourceRepository.findAllBennes();
+    }
+
+    public List<Ressource> listerTracteurs() {
+        return ressourceRepository.findAllTracteurs();
+    }
+
+    public List<Ressource> listerDisponibles() {
+        return ressourceRepository.findAllAvailable();
+    }
+
     public List<Ressource> listerDisponiblesParType(TypeRessource type) {
         return ressourceRepository.findAvailableByType(type);
     }
@@ -77,33 +103,54 @@ public class RessourceService {
 
     public Map<String, Object> obtenirStatut(String id) {
         Ressource r = getRessourceById(id);
+
         Map<String, Object> map = new HashMap<>();
         map.put("id", r.getId());
         map.put("nom", r.getNom());
         map.put("type", r.getType());
         map.put("statut", r.getStatut());
-        map.put("disponible", r.estDisponible());
-        map.put("enTournee", r.estEnTournee());
-        map.put("nombreTournees", r.getNombreTournees());
+
+        // ✅ computed in service (clean)
+        map.put("disponible", "DISPONIBLE".equals(r.getStatut()));
+        map.put("enTournee", r.getTournees() != null && !r.getTournees().isEmpty());
+        map.put("nombreTournees", r.getTournees() != null ? r.getTournees().size() : 0);
+
         return map;
     }
 
     // ── Validation ────────────────────────────────────────────────
 
     private void validateBenne(Ressource r) {
-        if (r.getCapaciteKg() == null || r.getCapaciteKg() <= 0)
+        if (r.getCapaciteKg() == null || r.getCapaciteKg() <= 0) {
             throw new RuntimeException("La capacité d'une benne doit être positive");
-        if (r.getQuantiteChargeeActuelle() == null) r.setQuantiteChargeeActuelle(0.0);
-        if (r.getTauxRemplissage() == null)         r.setTauxRemplissage(0.0);
+        }
+
+        if (r.getQuantiteChargeeActuelle() == null) {
+            r.setQuantiteChargeeActuelle(0.0);
+        }
+
+        if (r.getTauxRemplissage() == null) {
+            r.setTauxRemplissage(0.0);
+        }
+
         r.setEstPleine(r.getQuantiteChargeeActuelle() >= r.getCapaciteKg());
     }
 
     private void validateTracteur(Ressource r) {
-        if (r.getPuissance() == null || r.getPuissance().trim().isEmpty())
+        if (r.getPuissance() == null || r.getPuissance().trim().isEmpty()) {
             throw new RuntimeException("La puissance du tracteur est requise");
-        if (r.getCarburant() == null || r.getCarburant().trim().isEmpty())
+        }
+
+        if (r.getCarburant() == null || r.getCarburant().trim().isEmpty()) {
             throw new RuntimeException("Le type de carburant est requis");
-        if (r.getKilometrage() == null)  r.setKilometrage(0.0);
-        if (r.getARemorque() == null)    r.setARemorque(false);
+        }
+
+        if (r.getKilometrage() == null) {
+            r.setKilometrage(0.0);
+        }
+
+        if (r.getARemorque() == null) {
+            r.setARemorque(false);
+        }
     }
 }

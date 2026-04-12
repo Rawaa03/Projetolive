@@ -3,7 +3,6 @@ package com.example.demo.repository;
 import com.example.demo.model.StatutTournee;
 import com.example.demo.model.Tournee;
 import com.example.demo.model.Verger;
-import org.springframework.data.mongodb.repository.Aggregation;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -16,29 +15,32 @@ public interface TourneeRepository extends MongoRepository<Tournee, String> {
 
     Optional<Tournee> findByCode(String code);
 
-    List<Tournee> findByVerger(Verger verger);
-
     List<Tournee> findByStatut(StatutTournee statut);
 
-    @Query("{ 'verger' : ?0, 'statut' : 'TERMINEE' }")
-    List<Tournee> findTermineesByVerger(Verger verger);
+    List<Tournee> findByVerger(Verger verger);
 
-    @Query("{ 'verger.$id' : { $oid: ?0 }, 'statut' : 'TERMINEE' }")
-    List<Tournee> findTermineesByVergerId(String vergerId);
-
-    @Query("{ 'verger.$id' : { $oid: ?0 } }")
+    // Find all tournées for a verger by verger ID
+    @Query("{ 'verger.$id': { $oid: ?0 } }")
     List<Tournee> findByVergerId(String vergerId);
 
-    @Query("{ 'travailleurIds' : ?0 }")
+    // Find only TERMINEE tournées for a verger (used for total harvest calculation)
+    @Query("{ 'verger.$id': { $oid: ?0 }, 'statut': 'TERMINEE' }")
+    List<Tournee> findTermineesByVergerId(String vergerId);
+
+    // Find tournées where a specific travailleur is assigned
+    @Query("{ 'travailleurs.$id': { $oid: ?0 } }")
     List<Tournee> findByTravailleurId(String travailleurId);
 
-    @Query("{ 'benneId' : ?0 }")
+    // Find tournées where a specific benne is assigned
+    @Query("{ 'benne.$id': { $oid: ?0 } }")
     List<Tournee> findByBenneId(String benneId);
 
-    @Query("{ 'tracteurId' : ?0 }")
+    // Find tournées where a specific tracteur is assigned
+    @Query("{ 'tracteur.$id': { $oid: ?0 } }")
     List<Tournee> findByTracteurId(String tracteurId);
 
-    @Query("{ 'statut' : { $in: ['PLANIFIEE', 'EN_COURS'] } }")
+    // Active tournées (not yet finished or cancelled)
+    @Query("{ 'statut': { $in: ['PLANIFIEE', 'EN_COURS'] } }")
     List<Tournee> findActive();
 
     boolean existsByCode(String code);

@@ -21,9 +21,9 @@ import java.util.stream.Collectors;
 @Transactional
 public class TourneeServiceImpl implements TourneeService {
 
-    private final TourneeRepository    tourneeRepo;
-    private final VergerRepository     vergerRepo;
-    private final RessourceRepository  ressourceRepo;
+    private final TourneeRepository     tourneeRepo;
+    private final VergerRepository      vergerRepo;
+    private final RessourceRepository   ressourceRepo;
     private final UtilisateurRepository utilisateurRepo;
 
     // ═══════════════════════════════════════════════════════════════
@@ -33,11 +33,13 @@ public class TourneeServiceImpl implements TourneeService {
     @Override
     public TourneeResponse creer(TourneeRequest req) {
 
+        // Resolve verger
         Verger verger = vergerRepo.findById(req.getVergerId())
                 .orElseThrow(() -> new ResourceNotFoundException("Verger introuvable : " + req.getVergerId()));
         if (Boolean.TRUE.equals(verger.getEstSupprimer()))
             throw new IllegalStateException("Le verger est supprimé.");
 
+        // Resolve benne (as full object)
         Ressource benne = ressourceRepo.findById(req.getBenneId())
                 .orElseThrow(() -> new ResourceNotFoundException("Benne introuvable : " + req.getBenneId()));
         if (benne.getType() != TypeRessource.BENNE)
@@ -45,6 +47,7 @@ public class TourneeServiceImpl implements TourneeService {
         if (!"DISPONIBLE".equals(benne.getStatut()))
             throw new IllegalStateException("La benne " + benne.getNom() + " n'est pas disponible.");
 
+        // Resolve tracteur (as full object)
         Ressource tracteur = ressourceRepo.findById(req.getTracteurId())
                 .orElseThrow(() -> new ResourceNotFoundException("Tracteur introuvable : " + req.getTracteurId()));
         if (tracteur.getType() != TypeRessource.TRACTEUR)
@@ -52,11 +55,15 @@ public class TourneeServiceImpl implements TourneeService {
         if (!"DISPONIBLE".equals(tracteur.getStatut()))
             throw new IllegalStateException("Le tracteur " + tracteur.getNom() + " n'est pas disponible.");
 
+        // Resolve travailleurs (as full objects)
         if (req.getTravailleurIds() == null || req.getTravailleurIds().isEmpty())
             throw new IllegalArgumentException("Au moins un travailleur doit être assigné.");
-        for (String tid : req.getTravailleurIds())
-            utilisateurRepo.findById(tid)
+        List<Utilisateur> travailleurs = new ArrayList<>();
+        for (String tid : req.getTravailleurIds()) {
+            Utilisateur t = utilisateurRepo.findById(tid)
                     .orElseThrow(() -> new ResourceNotFoundException("Travailleur introuvable : " + tid));
+            travailleurs.add(t);
+        }
 
         int nbreArbre = (req.getNbreArbre() != null && req.getNbreArbre() > 0)
                 ? req.getNbreArbre() : Tournee.NB_ARBRES_PAR_TOURNEE;
@@ -65,9 +72,9 @@ public class TourneeServiceImpl implements TourneeService {
                 .code(genererCode())
                 .statut(StatutTournee.PLANIFIEE)
                 .verger(verger)
-                .benneId(req.getBenneId())
-                .tracteurId(req.getTracteurId())
-                .travailleurIds(new ArrayList<>(req.getTravailleurIds()))
+                .benne(benne)
+                .tracteur(tracteur)
+                .travailleurs(travailleurs)
                 .nbreArbre(nbreArbre)
                 .distanceTotale(req.getDistanceTotale())
                 .observations(req.getObservations())
@@ -82,7 +89,7 @@ public class TourneeServiceImpl implements TourneeService {
         ressourceRepo.save(benne);
         ressourceRepo.save(tracteur);
 
-        // Move verger to EN_COURS if it was idle
+        // Move verger to EN_COURS if still idle
         if (verger.getStatut() == StatutVerger.NON_RECOLTE) {
             verger.setStatut(StatutVerger.EN_COURS);
             vergerRepo.save(verger);
@@ -129,7 +136,7 @@ public class TourneeServiceImpl implements TourneeService {
     }
 
     // ═══════════════════════════════════════════════════════════════
-    // STATE TRANSITIONS  (logic lives here, not in the model)
+    // STATE TRANSITIONS
     // ═══════════════════════════════════════════════════════════════
 
     @Override
@@ -169,13 +176,12 @@ public class TourneeServiceImpl implements TourneeService {
             tournee.setTempsTotal((int) (diffMs / (1000 * 60)));
         }
 
-        // Add collected kg to benne, then free it
-        Ressource benne = ressourceRepo.findById(tournee.getBenneId()).orElse(null);
+        // Update benne charge then free it
+        Ressource benne = tournee.getBenne();
         if (benne != null) {
             try {
                 benne.ajouterCharge(req.getQuantiteCollecteeKg());
             } catch (IllegalArgumentException e) {
-                // benne overflow — cap at full
                 benne.setQuantiteChargeeActuelle(benne.getCapaciteKg());
                 benne.setEstPleine(true);
                 benne.setTauxRemplissage(100.0);
@@ -185,15 +191,13 @@ public class TourneeServiceImpl implements TourneeService {
         }
 
         // Free tracteur
-        Ressource tracteur = ressourceRepo.findById(tournee.getTracteurId()).orElse(null);
+        Ressource tracteur = tournee.getTracteur();
         if (tracteur != null) {
             tracteur.setStatut("DISPONIBLE");
             ressourceRepo.save(tracteur);
         }
 
         tourneeRepo.save(tournee);
-
-        // Auto-close verger if all trees are covered
         checkAndCloseVerger(tournee.getVerger().getId());
 
         return toResponse(tournee);
@@ -227,41 +231,49 @@ public class TourneeServiceImpl implements TourneeService {
             throw new IllegalStateException("Seule une tournée PLANIFIÉE peut être modifiée.");
 
         // Swap benne if changed
-        if (!tournee.getBenneId().equals(req.getBenneId())) {
-            Ressource old = ressourceRepo.findById(tournee.getBenneId()).orElse(null);
-            if (old != null) { old.setStatut("DISPONIBLE"); ressourceRepo.save(old); }
+        if (!tournee.getBenne().getId().equals(req.getBenneId())) {
+            tournee.getBenne().setStatut("DISPONIBLE");
+            ressourceRepo.save(tournee.getBenne());
 
-            Ressource nb = ressourceRepo.findById(req.getBenneId())
+            Ressource newBenne = ressourceRepo.findById(req.getBenneId())
                     .orElseThrow(() -> new ResourceNotFoundException("Benne introuvable : " + req.getBenneId()));
-            if (nb.getType() != TypeRessource.BENNE)
+            if (newBenne.getType() != TypeRessource.BENNE)
                 throw new IllegalArgumentException(req.getBenneId() + " n'est pas une benne.");
-            if (!"DISPONIBLE".equals(nb.getStatut()))
-                throw new IllegalStateException("Benne " + nb.getNom() + " non disponible.");
-            nb.setStatut("OCCUPE");
-            ressourceRepo.save(nb);
-            tournee.setBenneId(req.getBenneId());
+            if (!"DISPONIBLE".equals(newBenne.getStatut()))
+                throw new IllegalStateException("Benne " + newBenne.getNom() + " non disponible.");
+            newBenne.setStatut("OCCUPE");
+            ressourceRepo.save(newBenne);
+            tournee.setBenne(newBenne);
         }
 
         // Swap tracteur if changed
-        if (!tournee.getTracteurId().equals(req.getTracteurId())) {
-            Ressource old = ressourceRepo.findById(tournee.getTracteurId()).orElse(null);
-            if (old != null) { old.setStatut("DISPONIBLE"); ressourceRepo.save(old); }
+        if (!tournee.getTracteur().getId().equals(req.getTracteurId())) {
+            tournee.getTracteur().setStatut("DISPONIBLE");
+            ressourceRepo.save(tournee.getTracteur());
 
-            Ressource nt = ressourceRepo.findById(req.getTracteurId())
+            Ressource newTracteur = ressourceRepo.findById(req.getTracteurId())
                     .orElseThrow(() -> new ResourceNotFoundException("Tracteur introuvable : " + req.getTracteurId()));
-            if (nt.getType() != TypeRessource.TRACTEUR)
+            if (newTracteur.getType() != TypeRessource.TRACTEUR)
                 throw new IllegalArgumentException(req.getTracteurId() + " n'est pas un tracteur.");
-            if (!"DISPONIBLE".equals(nt.getStatut()))
-                throw new IllegalStateException("Tracteur " + nt.getNom() + " non disponible.");
-            nt.setStatut("OCCUPE");
-            ressourceRepo.save(nt);
-            tournee.setTracteurId(req.getTracteurId());
+            if (!"DISPONIBLE".equals(newTracteur.getStatut()))
+                throw new IllegalStateException("Tracteur " + newTracteur.getNom() + " non disponible.");
+            newTracteur.setStatut("OCCUPE");
+            ressourceRepo.save(newTracteur);
+            tournee.setTracteur(newTracteur);
         }
 
-        if (req.getTravailleurIds() != null && !req.getTravailleurIds().isEmpty())
-            tournee.setTravailleurIds(new ArrayList<>(req.getTravailleurIds()));
-        if (req.getNbreArbre()     != null && req.getNbreArbre() > 0)
-            tournee.setNbreArbre(req.getNbreArbre());
+        // Update travailleurs if provided
+        if (req.getTravailleurIds() != null && !req.getTravailleurIds().isEmpty()) {
+            List<Utilisateur> travailleurs = new ArrayList<>();
+            for (String tid : req.getTravailleurIds()) {
+                Utilisateur t = utilisateurRepo.findById(tid)
+                        .orElseThrow(() -> new ResourceNotFoundException("Travailleur introuvable : " + tid));
+                travailleurs.add(t);
+            }
+            tournee.setTravailleurs(travailleurs);
+        }
+
+        if (req.getNbreArbre()      != null && req.getNbreArbre() > 0) tournee.setNbreArbre(req.getNbreArbre());
         if (req.getDistanceTotale() != null) tournee.setDistanceTotale(req.getDistanceTotale());
         if (req.getObservations()   != null) tournee.setObservations(req.getObservations());
         if (req.getDateDebut()      != null) tournee.setDateDebut(req.getDateDebut());
@@ -312,34 +324,28 @@ public class TourneeServiceImpl implements TourneeService {
     }
 
     private void freeResources(Tournee tournee) {
-        Ressource benne = ressourceRepo.findById(tournee.getBenneId()).orElse(null);
-        if (benne != null && "OCCUPE".equals(benne.getStatut())) {
-            benne.setStatut("DISPONIBLE");
-            ressourceRepo.save(benne);
+        if (tournee.getBenne() != null && "OCCUPE".equals(tournee.getBenne().getStatut())) {
+            tournee.getBenne().setStatut("DISPONIBLE");
+            ressourceRepo.save(tournee.getBenne());
         }
-        Ressource tracteur = ressourceRepo.findById(tournee.getTracteurId()).orElse(null);
-        if (tracteur != null && "OCCUPE".equals(tracteur.getStatut())) {
-            tracteur.setStatut("DISPONIBLE");
-            ressourceRepo.save(tracteur);
+        if (tournee.getTracteur() != null && "OCCUPE".equals(tournee.getTracteur().getStatut())) {
+            tournee.getTracteur().setStatut("DISPONIBLE");
+            ressourceRepo.save(tournee.getTracteur());
         }
     }
 
     private void checkAndCloseVerger(String vergerId) {
         Verger verger = vergerRepo.findById(vergerId).orElse(null);
         if (verger == null) return;
-
         int arbresCouverts = tourneeRepo.findTermineesByVergerId(vergerId).stream()
                 .mapToInt(t -> t.getNbreArbre() != null ? t.getNbreArbre() : 0)
                 .sum();
-
         if (arbresCouverts >= verger.getNbArbre()) {
             verger.setStatut(StatutVerger.RECOLTE);
             verger.setDateDerniereRecolte(new Date());
             vergerRepo.save(verger);
         }
     }
-
-    // ── efficacite computed here, not in the model ────────────────
 
     private double calculerEfficacite(Tournee t) {
         if (t.getTempsTotal()          == null || t.getTempsTotal()          == 0) return 0.0;
@@ -348,8 +354,6 @@ public class TourneeServiceImpl implements TourneeService {
         double heures = t.getTempsTotal() / 60.0;
         return Math.min((t.getQuantiteCollecteeKg() / (t.getDistanceTotale() * heures)) * 10.0, 100.0);
     }
-
-    // ── Response builder ──────────────────────────────────────────
 
     private TourneeResponse toResponse(Tournee t) {
         Verger v = t.getVerger();
@@ -362,23 +366,24 @@ public class TourneeServiceImpl implements TourneeService {
                 vergerAgriculteurNom = v.getAgriculteur().getPrenom() + " " + v.getAgriculteur().getNom();
         }
 
-        String benneNom = null; Double benneCapaciteKg = null;
-        if (t.getBenneId() != null) {
-            Ressource b = ressourceRepo.findById(t.getBenneId()).orElse(null);
-            if (b != null) { benneNom = b.getNom(); benneCapaciteKg = b.getCapaciteKg(); }
-        }
+        Ressource benne = t.getBenne();
+        String benneNom = benne != null ? benne.getNom() : null;
+        Double benneCapaciteKg = benne != null ? benne.getCapaciteKg() : null;
+        String benneId = benne != null ? benne.getId() : null;
 
-        String tracteurNom = null, tracteurImmat = null;
-        if (t.getTracteurId() != null) {
-            Ressource tr = ressourceRepo.findById(t.getTracteurId()).orElse(null);
-            if (tr != null) { tracteurNom = tr.getNom(); tracteurImmat = tr.getImmatriculation(); }
-        }
+        Ressource tracteur = t.getTracteur();
+        String tracteurNom   = tracteur != null ? tracteur.getNom()            : null;
+        String tracteurImmat = tracteur != null ? tracteur.getImmatriculation() : null;
+        String tracteurId    = tracteur != null ? tracteur.getId()              : null;
 
+        List<String> travailleurIds  = new ArrayList<>();
         List<String> travailleurNoms = new ArrayList<>();
-        if (t.getTravailleurIds() != null)
-            for (String tid : t.getTravailleurIds())
-                utilisateurRepo.findById(tid).ifPresent(u ->
-                        travailleurNoms.add(u.getPrenom() + " " + u.getNom()));
+        if (t.getTravailleurs() != null) {
+            for (Utilisateur u : t.getTravailleurs()) {
+                travailleurIds.add(u.getId());
+                travailleurNoms.add(u.getPrenom() + " " + u.getNom());
+            }
+        }
 
         Double totalVerger = (v != null) ? getTotalCollecteParVerger(v.getId()) : null;
 
@@ -390,13 +395,13 @@ public class TourneeServiceImpl implements TourneeService {
                 .vergerTypeOlive(vergerTypeOlive)
                 .vergerAgriculteurNom(vergerAgriculteurNom)
                 .vergerSuperficie(vergerSuperficie)
-                .benneId(t.getBenneId())
+                .benneId(benneId)
                 .benneNom(benneNom)
                 .benneCapaciteKg(benneCapaciteKg)
-                .tracteurId(t.getTracteurId())
+                .tracteurId(tracteurId)
                 .tracteurNom(tracteurNom)
                 .tracteurImmatriculation(tracteurImmat)
-                .travailleurIds(t.getTravailleurIds())
+                .travailleurIds(travailleurIds)
                 .travailleurNoms(travailleurNoms)
                 .nbreArbre(t.getNbreArbre())
                 .distanceTotale(t.getDistanceTotale())

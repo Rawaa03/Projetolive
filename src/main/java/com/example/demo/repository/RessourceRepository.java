@@ -2,6 +2,7 @@ package com.example.demo.repository;
 
 import com.example.demo.model.Ressource;
 import com.example.demo.model.TypeRessource;
+import com.example.demo.model.Utilisateur;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -25,8 +26,9 @@ public interface RessourceRepository extends MongoRepository<Ressource, String> 
     @Query("{ 'type': 'BENNE', 'statut': ?0 }")
     List<Ressource> findBennesByStatut(String statut);
 
-    @Query("{ 'type': 'BENNE', 'tracteurAttacheId': ?0 }")
-    List<Ressource> findBennesByTracteur(String tracteurId);
+    // Bennes attached to a given tracteur object
+    @Query("{ 'type': 'BENNE', 'tracteur.$id': { $oid: ?0 } }")
+    List<Ressource> findBennesByTracteurId(String tracteurId);
 
     @Query("{ 'type': 'BENNE', 'estPleine': true }")
     List<Ressource> findFullBennes();
@@ -41,11 +43,12 @@ public interface RessourceRepository extends MongoRepository<Ressource, String> 
     @Query("{ 'type': 'TRACTEUR', 'statut': ?0 }")
     List<Ressource> findTracteursByStatut(String statut);
 
-    @Query("{ 'type': 'TRACTEUR', 'conducteurId': ?0 }")
-    List<Ressource> findTracteursByDriver(String driverId);
+    // Tracteurs assigned to a given conducteur (Utilisateur)
+    @Query("{ 'type': 'TRACTEUR', 'conducteur.$id': { $oid: ?0 } }")
+    List<Ressource> findTracteursByConducteurId(String conducteurId);
 
     @Query("{ 'type': 'TRACTEUR', 'carburant': ?0 }")
-    List<Ressource> findTracteursByFuel(String fuel);
+    List<Ressource> findTracteursByCarburant(String carburant);
 
     // ── Availability ───────────────────────────────────────────────
     @Query("{ 'statut': 'DISPONIBLE' }")

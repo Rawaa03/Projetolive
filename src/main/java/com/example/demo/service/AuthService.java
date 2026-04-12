@@ -43,38 +43,50 @@ public class AuthService {
 
     // ========== MÉTHODES D'AUTHENTIFICATION ==========
     
-    public Map<String, Object> login(String email, String motDePasse) {
-        System.out.println("🔐 Tentative de connexion pour: " + email);
-        
-        Utilisateur utilisateur = utilisateurRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
-        
-        if (!passwordEncoder.matches(motDePasse, utilisateur.getMotDePasse())) {
-            throw new RuntimeException("Mot de passe incorrect");
-        }
-        
-        if (!utilisateur.getEstActif()) {
-            throw new RuntimeException("Compte désactivé");
-        }
-        
-        String token = jwtUtils.generateToken(
-                utilisateur.getEmail(),
-                utilisateur.getRole().toString(),
-                utilisateur.getId()
-        );
-        
-        Map<String, Object> response = new HashMap<>();
-        response.put("id", utilisateur.getId());
-        response.put("email", utilisateur.getEmail());
-        response.put("prenom", utilisateur.getPrenom());
-        response.put("nom", utilisateur.getNom());
-        response.put("role", utilisateur.getRole());
-        response.put("token", token);
-        response.put("compteActif", utilisateur.isCompteActif());
-        
-        return response;
+  public Map<String, Object> login(String email, String motDePasse) {
+    System.out.println("🔐 Tentative de connexion pour: " + email);
+    System.out.println("📝 Mot de passe saisi (length): " + motDePasse.length());
+    System.out.println("📝 Mot de passe saisi: '" + motDePasse + "'");
+    
+    Utilisateur utilisateur = utilisateurRepository.findByEmail(email)
+            .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+    
+    System.out.println("👤 Utilisateur trouvé: " + utilisateur.getEmail());
+    System.out.println("🔑 Mot de passe stocké (encoded): " + utilisateur.getMotDePasse());
+    System.out.println("📊 compteActif: " + utilisateur.isCompteActif());
+    System.out.println("📊 estActif: " + utilisateur.getEstActif());
+    
+    boolean matches = passwordEncoder.matches(motDePasse, utilisateur.getMotDePasse());
+    System.out.println("✅ Password matches: " + matches);
+    
+    if (!matches) {
+        // Try to see if the password was encoded differently
+        System.out.println("❌ Password mismatch!");
+        System.out.println("💡 Tip: Make sure you're using the exact password that was generated");
+        throw new RuntimeException("Mot de passe incorrect");
     }
-
+    
+    if (!utilisateur.getEstActif()) {
+        throw new RuntimeException("Compte désactivé");
+    }
+    
+    String token = jwtUtils.generateToken(
+            utilisateur.getEmail(),
+            utilisateur.getRole().toString(),
+            utilisateur.getId()
+    );
+    
+    Map<String, Object> response = new HashMap<>();
+    response.put("id", utilisateur.getId());
+    response.put("email", utilisateur.getEmail());
+    response.put("prenom", utilisateur.getPrenom());
+    response.put("nom", utilisateur.getNom());
+    response.put("role", utilisateur.getRole());
+    response.put("token", token);
+    response.put("compteActif", utilisateur.isCompteActif());
+    
+    return response;
+}
     public Map<String, Object> loginResponsable(String email, String motDePasse) {
         Utilisateur utilisateur = utilisateurRepository.findByEmailAndRole(email, Role.RESPONSABLE)
                 .orElseThrow(() -> new RuntimeException("Accès réservé aux responsables"));
@@ -339,6 +351,67 @@ public class AuthService {
         }
         
         return sauvegarde;
+    }
+ // ========== GESTION DU PROFIL UTILISATEUR ==========
+
+    public Map<String, Object> getProfil(String id) {
+        Utilisateur utilisateur = utilisateurRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+        
+        Map<String, Object> profil = new HashMap<>();
+        profil.put("id", utilisateur.getId());
+        profil.put("email", utilisateur.getEmail());
+        profil.put("nom", utilisateur.getNom());
+        profil.put("prenom", utilisateur.getPrenom());
+        profil.put("telephone", utilisateur.getTelephone());
+        profil.put("adresse", utilisateur.getAdresse());
+        profil.put("role", utilisateur.getRole());
+        
+        return profil;
+    }
+
+    public Utilisateur mettreAJourProfil(String id, Map<String, Object> updates) {
+        Utilisateur utilisateur = utilisateurRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+        
+        if (updates.containsKey("nom")) {
+            utilisateur.setNom((String) updates.get("nom"));
+        }
+        if (updates.containsKey("prenom")) {
+            utilisateur.setPrenom((String) updates.get("prenom"));
+        }
+        if (updates.containsKey("telephone")) {
+            utilisateur.setTelephone((String) updates.get("telephone"));
+        }
+        if (updates.containsKey("adresse")) {
+            utilisateur.setAdresse((String) updates.get("adresse"));
+        }
+        
+        return utilisateurRepository.save(utilisateur);
+    }
+
+    public void changerMotDePasse(String id, String ancienMotDePasse, String nouveauMotDePasse) {
+        Utilisateur utilisateur = utilisateurRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+        
+        if (!passwordEncoder.matches(ancienMotDePasse, utilisateur.getMotDePasse())) {
+            throw new RuntimeException("Ancien mot de passe incorrect");
+        }
+        
+        utilisateur.setMotDePasse(passwordEncoder.encode(nouveauMotDePasse));
+        utilisateurRepository.save(utilisateur);
+    }
+
+    // ========== ADMIN : DÉSACTIVER COMPTE ==========
+
+    public Utilisateur desactiverCompte(String id) {
+        Utilisateur utilisateur = utilisateurRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+        
+        utilisateur.setCompteActif(false);
+        utilisateur.setEstActif(false);
+        
+        return utilisateurRepository.save(utilisateur);
     }
 
     public Utilisateur activerCompte(String id, String nouveauMotDePasse) {

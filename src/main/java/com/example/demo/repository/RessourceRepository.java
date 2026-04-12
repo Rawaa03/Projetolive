@@ -6,26 +6,19 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
 @Repository
 public interface RessourceRepository extends MongoRepository<Ressource, String> {
 
-    // ==================== RECHERCHE PAR TYPE ====================
     List<Ressource> findByType(TypeRessource type);
-
-    // ==================== RECHERCHE PAR STATUT ====================
     List<Ressource> findByStatut(String statut);
-
-    // ==================== RECHERCHE COMBINÉE ====================
     List<Ressource> findByTypeAndStatut(TypeRessource type, String statut);
-
-    // ==================== RECHERCHE PAR IMMATRICULATION ====================
     Optional<Ressource> findByImmatriculation(String immatriculation);
+    List<Ressource> findByNomContainingIgnoreCase(String nom);
 
-    // ==================== RECHERCHE BENNES ====================
+    // ── Benne queries ──────────────────────────────────────────────
     @Query("{ 'type': 'BENNE' }")
     List<Ressource> findAllBennes();
 
@@ -39,9 +32,9 @@ public interface RessourceRepository extends MongoRepository<Ressource, String> 
     List<Ressource> findFullBennes();
 
     @Query("{ 'type': 'BENNE', 'tauxRemplissage': { $gte: ?0, $lte: ?1 } }")
-    List<Ressource> findBennesByFillPercentage(Double minPercentage, Double maxPercentage);
+    List<Ressource> findBennesByFillPercentage(Double min, Double max);
 
-    // ==================== RECHERCHE TRACTEURS ====================
+    // ── Tracteur queries ───────────────────────────────────────────
     @Query("{ 'type': 'TRACTEUR' }")
     List<Ressource> findAllTracteurs();
 
@@ -54,23 +47,16 @@ public interface RessourceRepository extends MongoRepository<Ressource, String> 
     @Query("{ 'type': 'TRACTEUR', 'carburant': ?0 }")
     List<Ressource> findTracteursByFuel(String fuel);
 
-    // ==================== RECHERCHE DISPONIBILITÉ ====================
-    @Query("{ 'statut': 'DISPONIBLE', 'type': ?0 }")
-    List<Ressource> findAvailableByType(TypeRessource type);
-
+    // ── Availability ───────────────────────────────────────────────
     @Query("{ 'statut': 'DISPONIBLE' }")
     List<Ressource> findAllAvailable();
 
-    // ==================== RECHERCHE MAINTENANCE ====================
-    @Query("{ 'type': ?0, 'statut': 'MAINTENANCE' }")
-    List<Ressource> findUnderMaintenanceByType(TypeRessource type);
+    @Query("{ 'statut': 'DISPONIBLE', 'type': ?0 }")
+    List<Ressource> findAvailableByType(TypeRessource type);
 
     @Query("{ 'statut': 'MAINTENANCE' }")
     List<Ressource> findAllUnderMaintenance();
 
-    // ==================== RECHERCHE PAR NOM ====================
-    List<Ressource> findByNomContainingIgnoreCase(String nom);
-
-    @Query("{ 'type': ?0, 'nom': { $regex: ?1, $options: 'i' } }")
-    List<Ressource> findByTypeAndNameContaining(TypeRessource type, String nom);
+    @Query("{ 'type': ?0, 'statut': 'MAINTENANCE' }")
+    List<Ressource> findUnderMaintenanceByType(TypeRessource type);
 }

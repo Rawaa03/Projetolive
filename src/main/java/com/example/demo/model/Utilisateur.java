@@ -42,25 +42,24 @@ public class Utilisateur {
 
     private Date dateCreation;
     private boolean compteActif;  // Note: changed from 'ACompte' to 'aCompte' pour convention Java
-    
+
     // ========== ATTRIBUTS POUR ROLE: ADMIN ==========
-    
+
     // ========== ATTRIBUTS POUR ROLE: RESPONSABLE ==========
     private String fonction;
     private Date datePrisePoste;
-    
+
     // ========== ATTRIBUTS POUR ROLE: AGRICULTEUR ==========
     private String nomExploitation;
     private List<Verger> vergers;
-    
-    // ========== ATTRIBUTS POUR ROLE: EQUIPE_RECOLTE ==========
+    @Indexed(unique = true)    // ========== ATTRIBUTS POUR ROLE: EQUIPE_RECOLTE ==========
     private String cin;
     private List<String> specialites;
     private List<Collecte> collectesAssignees;
     private Date dateEmbauche;
     private Double salaire;
     private TypeTravailleur statutEmploye;
-    
+
     // ========== ATTRIBUTS POUR ROLE: TRANSPORTEUR ==========
     private String permis;
     private List<Ressource> ressources;
@@ -69,9 +68,9 @@ public class Utilisateur {
     private Integer anneesExperience;
     private List<Tournee> tourneesAssignees;
     private Double tarifKm;
-    
+
     // ========== MÉTHODES POUR DISPONIBILITÉ (comme dans Ressource) ==========
-    
+
     /**
      * Vérifie si le travailleur est disponible pour une période donnée
      */
@@ -80,28 +79,28 @@ public class Utilisateur {
         if (this.collectesAssignees == null || this.collectesAssignees.isEmpty()) {
             return true;
         }
-        
+
         for (Collecte collecte : this.collectesAssignees) {
             if (collecte.getDateDebut() == null || collecte.getDateFin() == null) {
                 // Si une collecte n'a pas de date de fin, elle est considérée comme en cours
                 return false;
             }
-            
+
             if (datesSeChevauchent(dateDebut, dateFin, collecte.getDateDebut(), collecte.getDateFin())) {
                 return false;
             }
         }
         return true;
     }
-    
+
     /**
      * Vérifie si le travailleur est actuellement en collecte
      */
     public boolean estEnCollecte() {
         if (this.collectesAssignees == null) return false;
-        
+
         Date now = new Date();
-        
+
         for (Collecte collecte : this.collectesAssignees) {
             if (collecte.getDateDebut() != null && collecte.getDateFin() == null) {
                 return true;
@@ -114,21 +113,21 @@ public class Utilisateur {
         }
         return false;
     }
-    
+
     /**
      * Vérifie si le travailleur est disponible (pas en collecte)
      */
     public boolean isDisponible() {
         return !estEnCollecte();
     }
-    
+
     /**
      * Compte le nombre de collectes assignées
      */
     public int getNombreCollectes() {
         return this.collectesAssignees != null ? this.collectesAssignees.size() : 0;
     }
-    
+
     /**
      * Ajoute une collecte au travailleur
      */
@@ -138,7 +137,7 @@ public class Utilisateur {
         }
         this.collectesAssignees.add(collecte);
     }
-    
+
     /**
      * Retire une collecte du travailleur
      */
@@ -147,7 +146,7 @@ public class Utilisateur {
             this.collectesAssignees.remove(collecte);
         }
     }
-    
+
     /**
      * Vérifie si deux périodes se chevauchent
      */
@@ -157,68 +156,68 @@ public class Utilisateur {
         }
         return debut1.before(fin2) && debut2.before(fin1);
     }
-    
+
     // ========== MÉTHODES UTILITAIRES ==========
-    
+
     /**
      * Calcule le salaire total basé sur le nombre de collectes
      */
     public double calculerSalaireTotal() {
-        if (this.role != Role.EQUIPE_RECOLTE || this.salaire == null) {
+        if (this.role != Role.TRAVAILLEUR || this.salaire == null) {
             return 0.0;
         }
-        
+
         if (this.collectesAssignees == null) return 0.0;
-        
+
         // Exemple: salaire journalier * nombre de jours de collecte
         // À adapter selon votre logique métier
         return this.salaire * this.collectesAssignees.size();
     }
-    
+
     /**
      * Vérifie si c'est un travailleur saisonnier
      */
     public boolean estSaisonnier() {
-        return this.role == Role.EQUIPE_RECOLTE && 
-               this.statutEmploye == TypeTravailleur.SAISONNIER;
+        return this.role == Role.TRAVAILLEUR &&
+                this.statutEmploye == TypeTravailleur.SAISONNIER;
     }
-    
+
     /**
      * Vérifie si c'est un travailleur permanent
      */
     public boolean estPermanent() {
-        return this.role == Role.EQUIPE_RECOLTE && 
-               this.statutEmploye == TypeTravailleur.PERMANENT;
+        return this.role == Role.TRAVAILLEUR &&
+                this.statutEmploye == TypeTravailleur.PERMANENT;
     }
-    
+
     /**
      * Vérifie si c'est un travailleur
      */
     public boolean estTravailleur() {
-        return this.role == Role.EQUIPE_RECOLTE;
+        return this.role == Role.TRAVAILLEUR;
     }
-    
+
     /**
      * Vérifie si c'est un agriculteur
      */
     public boolean estAgriculteur() {
         return this.role == Role.AGRICULTEUR;
     }
-    
+
     /**
      * Vérifie si c'est un transporteur
      */
     public boolean estTransporteur() {
         return this.role == Role.TRANSPORTEUR;
     }
-    
+
     /**
      * Vérifie si c'est un responsable
      */
     public boolean estResponsable() {
         return this.role == Role.RESPONSABLE;
     }
-    
+
     /**
      * Vérifie si c'est un admin
      */

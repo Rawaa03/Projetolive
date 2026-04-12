@@ -1,0 +1,54 @@
+package com.example.demo.dto;
+
+import com.example.demo.model.StatutTournee;
+import lombok.Builder;
+import lombok.Data;
+
+import java.util.Date;
+import java.util.List;
+
+@Data
+@Builder
+public class TourneeResponse {
+
+    private String id;
+    private String code;
+    private StatutTournee statut;
+
+    // Verger info
+    private String vergerId;
+    private String vergerTypeOlive;
+    private String vergerAgriculteurNom;
+    private Double vergerSuperficie;
+
+    // Resources
+    private String benneId;
+    private String benneNom;
+    private Double benneCapaciteKg;
+
+    private String tracteurId;
+    private String tracteurNom;
+    private String tracteurImmatriculation;
+
+    private List<String> travailleurIds;
+    private List<String> travailleurNoms;   // convenience: "Prénom Nom"
+
+    // Field data
+    private Integer nbreArbre;
+    private Double distanceTotale;
+    private Integer tempsTotal;             // minutes
+
+    // Harvest result
+    private Double quantiteCollecteeKg;
+    private Boolean collecteFinalisee;
+    private Double efficacite;             // 0-100, computed on-the-fly
+
+    // Metadata
+    private String observations;
+    private Date dateDebut;
+    private Date dateFin;
+    private Date dateCreation;
+
+    // Verger aggregate
+    private Double totalCollecteVergerKg;  // sum of all terminated tournées of same verger
+}

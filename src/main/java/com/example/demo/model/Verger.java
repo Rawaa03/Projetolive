@@ -1,45 +1,42 @@
 package com.example.demo.model;
 
+import com.example.demo.model.enums.StatutVerger;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.data.mongodb.core.index.GeoSpatialIndexed;
+import org.springframework.data.mongodb.core.mapping.DocumentReference;
+
 import java.util.Date;
 
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Document(collection = "vergers")
 public class Verger {
-    
+
     @Id
     private String id;
-    
-    private String nom;
-    
-    private String proprietaireId; // Référence à l'utilisateur (agriculteur)
-    
-    
-    private Double superficie; // en hectares
-    
-    private String typeOlive; // Chemlali, Chétoui, etc.
-    
-    private Integer nombreArbres;
-    
-    private Double rendementEstime; // en kg
-    
-    private Integer maturiteActuelle; // pourcentage
-    private Integer niveauMaturite; // 0-100%
+    @DocumentReference(lazy = true)
+    private Utilisateur agriculteur; //reference agriculteur
 
-    private String statut; // non_recolte, en_cours, recolte
-    
+    private Double superficie;             // hectares
+    private String typeOlive;             // Chemlali, Chétoui, Picholine…
+    private Double rendementEstime;        // kg
+    private Integer maturiteActuelle;     // 0-100 %
+    private int nbArbre;
+
+    private StatutVerger statut;
+
     private Date dateDerniereRecolte;
-    
-    private Boolean estActif;
-    private String agriculteurId; // Référence à l'agriculteur
 
-    
+    @Builder.Default
+    private Boolean estSupprimer= false;
+
+    @CreatedDate
     private Date dateCreation;
 }

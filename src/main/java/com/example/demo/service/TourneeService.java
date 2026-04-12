@@ -1,66 +1,57 @@
 package com.example.demo.service;
 
+import com.example.demo.dto.TerminerTourneeRequest;
+import com.example.demo.dto.TourneeRequest;
+import com.example.demo.dto.TourneeResponse;
+import com.example.demo.model.StatutTournee;
 import com.example.demo.model.Tournee;
-import com.example.demo.repository.TourneeRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
-import java.util.Date;
 import java.util.List;
 
-@Service
-public class TourneeService {
+public interface TourneeService {
 
-    @Autowired
-    private TourneeRepository tourneeRepository;
+    /** Create a new PLANIFIEE tournée. */
+    TourneeResponse creer(TourneeRequest request);
 
-    /**
-     * Créer une nouvelle tournée
-     */
-    public Tournee creerTournee(Tournee tournee) {
-        System.out.println("🗺️ Création d'une tournée: " + tournee.getCode());
+    /** Get one tournée by id (DTO). */
+    TourneeResponse getById(String id);
 
-        if (tournee.getCode() == null || tournee.getCode().trim().isEmpty()) {
-            throw new RuntimeException("Le code de la tournée est requis");
-        }
+    /** Get raw Tournee entity by id (used internally by other services). */
+    Tournee getTourneeById(String id);
 
-        return tourneeRepository.save(tournee);
-    }
+    /** List all tournées. */
+    List<TourneeResponse> getAll();
 
-    /**
-     * Récupérer une tournée par ID
-     */
-    public Tournee getTourneeById(String id) {
-        return tourneeRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Tournée non trouvée: " + id));
-    }
+    /** List tournées by verger. */
+    List<TourneeResponse> getByVerger(String vergerId);
 
-    /**
-     * Lister toutes les tournées
-     */
-    public List<Tournee> listerTournees() {
-        return tourneeRepository.findAll();
-    }
+    /** List tournées by statut. */
+    List<TourneeResponse> getByStatut(StatutTournee statut);
+
+    /** List active tournées (PLANIFIEE or EN_COURS). */
+    List<TourneeResponse> getActive();
+
+    /** Move statut to EN_COURS and set dateDebut = now. */
+    TourneeResponse demarrer(String id);
 
     /**
-     * Mettre à jour une tournée
+     * Move statut to TERMINEE, record collected kg, update benne charge,
+     * update verger statut if all trees are done.
      */
-    public Tournee mettreAJourTournee(String id, Tournee tourneeUpdate) {
-        Tournee tournee = getTourneeById(id);
+    TourneeResponse terminer(String id, TerminerTourneeRequest request);
 
-        tournee.setCode(tourneeUpdate.getCode());
-        tournee.setStatut(tourneeUpdate.getStatut());
-        tournee.setDistanceTotale(tourneeUpdate.getDistanceTotale());
-        tournee.setObservations(tourneeUpdate.getObservations());
+    /** Cancel the tournée. */
+    TourneeResponse annuler(String id);
 
-        return tourneeRepository.save(tournee);
-    }
+    /** Update planning fields (only while PLANIFIEE). */
+    TourneeResponse mettreAJour(String id, TourneeRequest request);
 
-    /**
-     * Supprimer une tournée
-     */
-    public void supprimerTournee(String id) {
-        Tournee tournee = getTourneeById(id);
-        tourneeRepository.delete(tournee);
-    }
+    /** Delete (only while PLANIFIEE or ANNULEE). */
+    void supprimer(String id);
+
+    /** Sum of quantiteCollecteeKg of all TERMINEE tournées for a given verger. */
+    Double getTotalCollecteParVerger(String vergerId);
+
+    /** How many tournées are needed to cover all trees of a verger? */
+    int calculerNbTourneesNecessaires(String vergerId);
 }

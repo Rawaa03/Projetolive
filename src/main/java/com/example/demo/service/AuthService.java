@@ -42,7 +42,15 @@ public class AuthService {
     private EmailService emailService;
 
     // ========== MÉTHODES D'AUTHENTIFICATION ==========
-    
+    public void changerMotDePasseAdmin(String id, String nouveauMotDePasse) {
+        Utilisateur utilisateur = utilisateurRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+        
+        utilisateur.setMotDePasse(passwordEncoder.encode(nouveauMotDePasse));
+        utilisateurRepository.save(utilisateur);
+        
+        System.out.println("🔑 Admin a changé le mot de passe pour: " + utilisateur.getEmail());
+    }
   public Map<String, Object> login(String email, String motDePasse) {
     System.out.println("🔐 Tentative de connexion pour: " + email);
     System.out.println("📝 Mot de passe saisi (length): " + motDePasse.length());

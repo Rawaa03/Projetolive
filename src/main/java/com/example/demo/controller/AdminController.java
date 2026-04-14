@@ -77,7 +77,17 @@ public class AdminController {
     }
 
     // ========== ACTIVATION PAR RÔLE ==========
-    
+    @PostMapping("/changer-mot-de-passe/{id}")
+    public ResponseEntity<Map<String, String>> changerMotDePasseAdmin(
+            @PathVariable String id,
+            @RequestBody Map<String, String> request) {
+        String nouveauMotDePasse = request.get("nouveauMotDePasse");
+        authService.changerMotDePasseAdmin(id, nouveauMotDePasse);
+        
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Mot de passe changé avec succès");
+        return ResponseEntity.ok(response);
+    }
     @PostMapping("/activer-agriculteur/{id}")
     public ResponseEntity<Map<String, Object>> activerAgriculteur(
             @PathVariable String id, 

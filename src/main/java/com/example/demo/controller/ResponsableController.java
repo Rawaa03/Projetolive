@@ -80,17 +80,7 @@ public class ResponsableController {
         return ResponseEntity.ok(travailleurService.listerTravailleurs());
     }
     
-    @GetMapping("/travailleurs/disponibles")
-    public ResponseEntity<List<Utilisateur>> getTravailleursDisponibles() {
-        return ResponseEntity.ok(travailleurService.listerTravailleursDisponibles());
-    }
     
-    @GetMapping("/travailleurs/disponibles/periode")
-    public ResponseEntity<List<Utilisateur>> getTravailleursDisponiblesPourPeriode(
-            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss") Date dateDebut,
-            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss") Date dateFin) {
-        return ResponseEntity.ok(travailleurService.listerTravailleursDisponiblesPourPeriode(dateDebut, dateFin));
-    }
     
     @GetMapping("/travailleurs/specialite/{specialite}")
     public ResponseEntity<List<Utilisateur>> getTravailleursBySpecialite(@PathVariable String specialite) {
@@ -121,12 +111,5 @@ public class ResponsableController {
     
     // ==================== MÉTHODES UTILITAIRES TRAVAILLEURS ====================
     
-    @GetMapping("/travailleurs/{id}/disponible")
-    public ResponseEntity<Map<String, Boolean>> isTravailleurDisponible(@PathVariable String id) {
-        Utilisateur travailleur = travailleurService.trouverTravailleurParId(id);
-        Map<String, Boolean> response = new HashMap<>();
-        response.put("disponible", travailleur.isDisponible());
-        response.put("enCollecte", travailleur.estEnCollecte());
-        return ResponseEntity.ok(response);
-    }
+    
 }

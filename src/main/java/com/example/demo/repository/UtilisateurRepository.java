@@ -45,7 +45,6 @@ public interface UtilisateurRepository extends MongoRepository<Utilisateur, Stri
     
     List<Utilisateur> findByRole(Role role);
 
-    List<Utilisateur> findByRoleAndDisponibleTrue(Role role);
 
     boolean existsByEmail(String email);
 

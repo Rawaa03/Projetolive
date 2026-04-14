@@ -3,157 +3,71 @@ package com.example.demo.model;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.data.mongodb.core.mapping.DBRef;
+import org.springframework.data.mongodb.core.mapping.DocumentReference;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Document(collection = "tournees")
 public class Tournee {
-    
+
+    // 200 trees × ~5 kg/tree avg yield = 1 000 kg → fills one standard 1-tonne benne
+    public static final int NB_ARBRES_PAR_TOURNEE = 200;
+
     @Id
     private String id;
-    
-    private String code;
-    
-    private StatutTournee statut;
-    
+
+    private String code;            // e.g. T-20251012-001
+
+    private StatutTournee statut;   // PLANIFIEE | EN_COURS | TERMINEE | ANNULEE
+
+    @DocumentReference(lazy = true)
+    private Verger verger;
+
+    @DocumentReference(lazy = true)
+    private Ressource benne;
+
+    @DocumentReference(lazy = true)
+    private Ressource tracteur;
+
+    @DocumentReference(lazy = true)
+    @Builder.Default
+    private List<Utilisateur> travailleurs = new ArrayList<>();
+
+    /**
+     * Planned start date (set at creation, updated when demarrer() is called).
+     * Used for availability overlap checks.
+     */
     private Date dateDebut;
-    
+
+    /**
+     * Planned / actual end date.
+     * Set at creation as the estimated end; overwritten with the real time on terminer().
+     * Used for availability overlap checks.
+     */
     private Date dateFin;
-    
-    private Double distanceTotale;
-    
+
+    @Builder.Default
+    private Integer nbreArbre = NB_ARBRES_PAR_TOURNEE;
+
+    private Double distanceTotale;      // km
+    private Integer tempsTotal;         // minutes (actual dateDebut → actual dateFin)
+
+    private Double quantiteCollecteeKg;
+    private Boolean collecteFinalisee;
+
     private String observations;
-    
-    private Integer tempsTotal;
-    
-    @DBRef
-    private List<Ressource> ressources;
-    
-    public void demarrer() {
-        this.statut = StatutTournee.EN_COURS;
-        this.dateDebut = new Date();
-    }
-    
-    public void terminer() {
-        this.statut = StatutTournee.TERMINEE;
-        this.dateFin = new Date();
-        
-        if (this.dateDebut != null) {
-            long diff = this.dateFin.getTime() - this.dateDebut.getTime();
-            this.tempsTotal = (int) (diff / (1000 * 60));
-        }
-    }
-    
-    public void annuler() {
-        this.statut = StatutTournee.ANNULEE;
-        this.dateFin = new Date();
-    }
-    
-    public void ajouterRessource(Ressource ressource) {
-        if (this.ressources == null) {
-            this.ressources = new ArrayList<>();
-        }
-        
-        if (ressource.estDisponiblePour(this.dateDebut, this.dateFin)) {
-            this.ressources.add(ressource);
-            ressource.ajouterTournee(this);
-        } else {
-            throw new IllegalStateException("Ressource non disponible: " + ressource.getNom());
-        }
-    }
-    
-    public void retirerRessource(Ressource ressource) {
-        if (this.ressources != null) {
-            this.ressources.remove(ressource);
-        }
-    }
-    
-    public double getQuantiteTotaleCollectee() {
-        double total = 0.0;
-        if (this.ressources != null) {
-            for (Ressource r : this.ressources) {
-                if (r.estBenne()) {
-                    total += r.getQuantiteCollectee();
-                }
-            }
-        }
-        return total;
-    }
-    
-    public double getTauxRemplissageMoyen() {
-        if (this.ressources == null || this.ressources.isEmpty()) {
-            return 0.0;
-        }
-        
-        double total = 0.0;
-        int nbBennes = 0;
-        
-        for (Ressource r : this.ressources) {
-            if (r.estBenne() && r.getTauxRemplissage() != null) {
-                total += r.getTauxRemplissage();
-                nbBennes++;
-            }
-        }
-        
-        return nbBennes > 0 ? total / nbBennes : 0.0;
-    }
-    
-    public double calculerEfficacite() {
-        if (tempsTotal == null || tempsTotal == 0 || distanceTotale == null || distanceTotale == 0) {
-            return 0.0;
-        }
-        
-        double quantite = getQuantiteTotaleCollectee();
-        double heures = tempsTotal / 60.0;
-        
-        if (distanceTotale * heures == 0) {
-            return 0.0;
-        }
-        
-        double efficacite = (quantite / (distanceTotale * heures)) * 10;
-        return Math.min(efficacite, 100.0);
-    }
-    
-    public List<Ressource> getBennes() {
-        if (this.ressources == null) return new ArrayList<>();
-        
-        List<Ressource> bennes = new ArrayList<>();
-        for (Ressource r : this.ressources) {
-            if (r.estBenne()) {
-                bennes.add(r);
-            }
-        }
-        return bennes;
-    }
-    
-    public List<Ressource> getTracteurs() {
-        if (this.ressources == null) return new ArrayList<>();
-        
-        List<Ressource> tracteurs = new ArrayList<>();
-        for (Ressource r : this.ressources) {
-            if (r.estTracteur()) {
-                tracteurs.add(r);
-            }
-        }
-        return tracteurs;
-    }
-    
-    public List<Ressource> getTravailleurs() {
-        if (this.ressources == null) return new ArrayList<>();
-        
-        List<Ressource> travailleurs = new ArrayList<>();
-        for (Ressource r : this.ressources) {
-            if (r.estTravailleur()) {
-                travailleurs.add(r);
-            }
-        }
-        return travailleurs;
-    }
+    @DocumentReference(lazy = true)
+    private Collecte collecte;
+    @CreatedDate
+    private Date dateCreation;
 }

@@ -41,6 +41,17 @@ public interface TourneeRepository extends MongoRepository<Tournee, String> {
 
     boolean existsByCode(String code);
 
+    // ✅ CRITICAL MISSING METHOD - Find all tournées of a collecte
+    List<Tournee> findByCollecteId(String collecteId);
+
+    // ✅ Optional: Find first tournée of a collecte (useful for getting verger)
+    @Query(value = "{ 'collecte.$id': { $oid: ?0 } }", fields = "{ 'verger': 1 }")
+    Tournee findFirstByCollecteId(String collecteId);
+
+    // ✅ Optional: Count tournées by collecte
+    @Query(value = "{ 'collecte.$id': { $oid: ?0 } }", count = true)
+    long countByCollecteId(String collecteId);
+
     // ── Availability overlap queries ───────────────────────────────
     // A conflict exists when an active tournée overlaps [dateDebut, dateFin]:
     //   existing.dateDebut < requested.dateFin

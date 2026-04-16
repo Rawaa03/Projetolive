@@ -7,21 +7,17 @@ import java.util.Date;
 
 @Data
 @Builder
-public class CollecteResponse {
-    private String id;
+public class CollecteStatsDTO {
+    private String collecteId;
     private String code;
     private StatutCollecte statut;
-    private String annee;           // ← Vérifie que c'est "annee"
-    private Integer numero;
-    private String vergerId;
-    private Date dateDebutCampagne;
-    private Date dateFinCampagne;
+    private String annee;
     private Integer nbreTournees;
     private Double quantiteTotaleKg;
     private Integer totalArbresRecoltes;
     private Double rendementMoyenParArbre;
     private Double efficaciteMoyenne;
-    private String observations;
+    private Date dateDebutCampagne;
+    private Date dateFinCampagne;
     private Boolean estCloturee;
-    private Date dateCreation;
 }

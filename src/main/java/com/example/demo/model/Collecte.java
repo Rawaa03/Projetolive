@@ -8,23 +8,16 @@ import lombok.Builder;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.data.mongodb.core.mapping.DocumentReference;
+import org.springframework.data.mongodb.core.index.CompoundIndex;
 
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
-/**
- * Collecte = a harvest campaign.
- * 
- * The verger is known through the tournées (each tournée has a verger).
- * All tournées in a collecte must belong to the SAME verger.
- */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Document(collection = "collectes")
+@CompoundIndex(name = "idx_verger_annee", def = "{'vergerId': 1, 'annee': 1}")
 public class Collecte {
 
     @Id
@@ -33,23 +26,24 @@ public class Collecte {
     private String code;
     private StatutCollecte statut;
 
-    // ── Linked entities ─────────────────────────────────────────────────────
-    // NO verger here! It's accessed via tournees
-    
-    @Builder.Default
-    @DocumentReference(lazy = true)
-    private List<Tournee> tournees = new ArrayList<>();
-
+    // ── Campaign identification ───────────────────────────────────────────────
+    private String annee;           // e.g., "2024-2025"
+    private Integer numero;          // 1, 2, 3 for multiple collectes per year
+    private String vergerId;     //naarf 9olna nestaamlo les annotations ama lena mahchitch bih l objet andi fl tournee juste bech nsahal ala rouhi el requette w matekhouch akthar wakt
     // ── Campaign dates ───────────────────────────────────────────────────────
     private Date dateDebutCampagne;
     private Date dateFinCampagne;
 
-    // ── Campaign statistics (cached for performance) ────────────────────────
-    private Double quantiteTotaleKg;
+    // ── Campaign statistics (simple fields) ──────────────────────────────────
+    private Integer nbreTournees = 0;
+    private Double quantiteTotaleKg = 0.0;
+    private Integer totalArbresRecoltes = 0;
     private Double rendementMoyenParArbre;
-
+    private Double efficaciteMoyenne;
+    
     // ── Metadata ─────────────────────────────────────────────────────────────
     private String observations;
+    private Boolean estCloturee;
     
     @CreatedDate
     private Date dateCreation;

@@ -1,166 +1,228 @@
 package com.example.demo.controller;
 
+import com.example.demo.dto.CollecteDetailDTO;
 import com.example.demo.dto.CollecteRequest;
 import com.example.demo.dto.CollecteResponse;
+import com.example.demo.dto.CollecteStatsDTO;
+import com.example.demo.model.Collecte;
 import com.example.demo.model.enums.StatutCollecte;
 import com.example.demo.service.CollecteService;
-import jakarta.validation.Valid;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
+import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/collectes")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:4200")
+@Tag(name = "Collecte", description = "Gestion des campagnes de récolte")
 public class CollecteController {
 
     private final CollecteService collecteService;
 
-    // ─── CREATE ────────────────────────────────────────────────────────────
+    // ═══════════════════════════════════════════════════════════════
+    // BASIC CRUD
+    // ═══════════════════════════════════════════════════════════════
 
-    /**
-     * POST /api/collectes
-     * Create a new harvest campaign (PLANIFIEE).
-     */
-    @PostMapping
-    @PreAuthorize("hasAnyRole('RESPONSABLE', 'ADMIN')")
-    public ResponseEntity<CollecteResponse> creer(@Valid @RequestBody CollecteRequest request) {
-        return ResponseEntity.ok(collecteService.creer(request));
-    }
-
-    // ─── READ ──────────────────────────────────────────────────────────────
-
-    /**
-     * GET /api/collectes
-     * List all collectes.
-     */
     @GetMapping
-    @PreAuthorize("hasAnyRole('RESPONSABLE', 'ADMIN', 'AGRICULTEUR')")
-    public ResponseEntity<List<CollecteResponse>> getAll() {
-        return ResponseEntity.ok(collecteService.getAll());
+    @Operation(summary = "Récupérer toutes les collectes")
+    public ResponseEntity<List<CollecteResponse>> getAllCollectes() {
+        List<CollecteResponse> responses = collecteService.getAll().stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(responses);
     }
 
-    /**
-     * GET /api/collectes/active
-     * List collectes with statut PLANIFIEE or EN_COURS.
-     */
-    @GetMapping("/active")
-    @PreAuthorize("hasAnyRole('RESPONSABLE', 'ADMIN', 'EQUIPE_RECOLTE')")
-    public ResponseEntity<List<CollecteResponse>> getActive() {
-        return ResponseEntity.ok(collecteService.getActive());
-    }
-
-    /**
-     * GET /api/collectes/{id}
-     * Get a single collecte.
-     */
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('RESPONSABLE', 'ADMIN', 'AGRICULTEUR')")
-    public ResponseEntity<CollecteResponse> getById(@PathVariable String id) {
-        return ResponseEntity.ok(collecteService.getById(id));
+    @Operation(summary = "Récupérer une collecte par son ID")
+    public ResponseEntity<CollecteResponse> getCollecteById(@PathVariable String id) {
+        Collecte collecte = collecteService.getById(id);
+        return ResponseEntity.ok(toResponse(collecte));
     }
 
-    /**
-     * GET /api/collectes/verger/{vergerId}
-     * All collectes for a specific verger.
-     */
+    @GetMapping("/{id}/details")
+    @Operation(summary = "Récupérer une collecte avec toutes ses tournées")
+    public ResponseEntity<CollecteDetailDTO> getCollecteWithTournees(@PathVariable String id) {
+        CollecteDetailDTO detail = collecteService.getCollecteWithTournees(id);
+        return ResponseEntity.ok(detail);
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // QUERIES BY VERGER
+    // ═══════════════════════════════════════════════════════════════
+
     @GetMapping("/verger/{vergerId}")
-    @PreAuthorize("hasAnyRole('RESPONSABLE', 'ADMIN', 'AGRICULTEUR')")
-    public ResponseEntity<List<CollecteResponse>> getByVerger(@PathVariable String vergerId) {
-        return ResponseEntity.ok(collecteService.getByVerger(vergerId));
+    @Operation(summary = "Récupérer toutes les collectes d'un verger")
+    public ResponseEntity<List<CollecteResponse>> getCollectesByVerger(@PathVariable String vergerId) {
+        List<CollecteResponse> responses = collecteService.getByVerger(vergerId).stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(responses);
     }
 
-    /**
-     * GET /api/collectes/statut?statut=PLANIFIEE
-     * Filter collectes by statut.
-     */
-    @GetMapping("/statut")
-    @PreAuthorize("hasAnyRole('RESPONSABLE', 'ADMIN')")
-    public ResponseEntity<List<CollecteResponse>> getByStatut(@RequestParam StatutCollecte statut) {
-        return ResponseEntity.ok(collecteService.getByStatut(statut));
+    @GetMapping("/verger/{vergerId}/active")
+    @Operation(summary = "Récupérer les collectes actives d'un verger")
+    public ResponseEntity<List<CollecteResponse>> getActiveCollectesByVerger(@PathVariable String vergerId) {
+        List<CollecteResponse> responses = collecteService.getByVerger(vergerId).stream()
+                .filter(c -> c.getStatut() == StatutCollecte.PLANIFIEE || c.getStatut() == StatutCollecte.EN_COURS)
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(responses);
     }
 
-    // ─── STATE TRANSITIONS ─────────────────────────────────────────────────
+    // ═══════════════════════════════════════════════════════════════
+    // QUERIES BY STATUS
+    // ═══════════════════════════════════════════════════════════════
 
-    /**
-     * PATCH /api/collectes/{id}/demarrer
-     * Start a harvest campaign (PLANIFIEE → EN_COURS).
-     */
-    @PatchMapping("/{id}/demarrer")
-    @PreAuthorize("hasAnyRole('RESPONSABLE', 'ADMIN')")
-    public ResponseEntity<CollecteResponse> demarrer(@PathVariable String id) {
-        return ResponseEntity.ok(collecteService.demarrer(id));
+    @GetMapping("/statut/{statut}")
+    @Operation(summary = "Récupérer les collectes par statut")
+    public ResponseEntity<List<CollecteResponse>> getCollectesByStatut(@PathVariable StatutCollecte statut) {
+        List<CollecteResponse> responses = collecteService.getByStatut(statut).stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(responses);
     }
 
-    /**
-     * PATCH /api/collectes/{id}/terminer
-     * Finish a harvest campaign (EN_COURS → TERMINEE).
-     * Only possible if ALL tournées in this collecte are TERMINEE.
-     */
-    @PatchMapping("/{id}/terminer")
-    @PreAuthorize("hasAnyRole('RESPONSABLE', 'ADMIN')")
-    public ResponseEntity<CollecteResponse> terminer(@PathVariable String id) {
-        return ResponseEntity.ok(collecteService.terminer(id));
+    @GetMapping("/active")
+    @Operation(summary = "Récupérer toutes les collectes actives (PLANIFIEE ou EN_COURS)")
+    public ResponseEntity<List<CollecteResponse>> getActiveCollectes() {
+        List<CollecteResponse> responses = collecteService.getActiveCollectes().stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(responses);
     }
 
-    /**
-     * PATCH /api/collectes/{id}/annuler
-     * Cancel a harvest campaign.
-     */
-    @PatchMapping("/{id}/annuler")
-    @PreAuthorize("hasAnyRole('RESPONSABLE', 'ADMIN')")
-    public ResponseEntity<CollecteResponse> annuler(@PathVariable String id) {
-        return ResponseEntity.ok(collecteService.annuler(id));
+    // ═══════════════════════════════════════════════════════════════
+    // QUERIES BY YEAR
+    // ═══════════════════════════════════════════════════════════════
+
+    @GetMapping("/annee/{annee}")
+    @Operation(summary = "Récupérer les collectes par année de campagne")
+    public ResponseEntity<List<CollecteResponse>> getCollectesByAnnee(@PathVariable String annee) {
+        List<CollecteResponse> responses = collecteService.getByAnnee(annee).stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(responses);
     }
 
-    // ─── UPDATE / DELETE ───────────────────────────────────────────────────
+    // ═══════════════════════════════════════════════════════════════
+    // STATISTICS
+    // ═══════════════════════════════════════════════════════════════
 
-    /**
-     * PUT /api/collectes/{id}
-     * Update a PLANIFIEE collecte.
-     */
+    @GetMapping("/{id}/statistiques")
+    @Operation(summary = "Récupérer les statistiques détaillées d'une collecte")
+    public ResponseEntity<CollecteStatsDTO> getCollecteStats(@PathVariable String id) {
+        Collecte collecte = collecteService.getById(id);
+        CollecteStatsDTO stats = CollecteStatsDTO.builder()
+                .collecteId(collecte.getId())
+                .code(collecte.getCode())
+                .statut(collecte.getStatut())
+                .annee(collecte.getAnnee())
+                .nbreTournees(collecte.getNbreTournees())
+                .quantiteTotaleKg(collecte.getQuantiteTotaleKg())
+                .totalArbresRecoltes(collecte.getTotalArbresRecoltes())
+                .rendementMoyenParArbre(collecte.getRendementMoyenParArbre())
+                .efficaciteMoyenne(collecte.getEfficaciteMoyenne())
+                .dateDebutCampagne(collecte.getDateDebutCampagne())
+                .dateFinCampagne(collecte.getDateFinCampagne())
+                .estCloturee(collecte.getEstCloturee())
+                .build();
+        return ResponseEntity.ok(stats);
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // STATE TRANSITIONS
+    // ═══════════════════════════════════════════════════════════════
+
+    @PostMapping("/{id}/demarrer")
+    @Operation(summary = "Démarrer une collecte (passer de PLANIFIEE à EN_COURS)")
+    public ResponseEntity<CollecteResponse> demarrerCollecte(@PathVariable String id) {
+        collecteService.demarrerCollecte(id);
+        Collecte collecte = collecteService.getById(id);
+        return ResponseEntity.ok(toResponse(collecte));
+    }
+
+    @PostMapping("/{id}/terminer")
+    @Operation(summary = "Terminer une collecte (passer de EN_COURS à TERMINEE)")
+    public ResponseEntity<CollecteResponse> terminerCollecte(@PathVariable String id) {
+        collecteService.terminerCollecte(id);
+        Collecte collecte = collecteService.getById(id);
+        return ResponseEntity.ok(toResponse(collecte));
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // UPDATE
+    // ═══════════════════════════════════════════════════════════════
+
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('RESPONSABLE', 'ADMIN')")
-    public ResponseEntity<CollecteResponse> mettreAJour(
+    @Operation(summary = "Mettre à jour les informations d'une collecte")
+    public ResponseEntity<CollecteResponse> updateCollecte(
             @PathVariable String id,
-            @Valid @RequestBody CollecteRequest request) {
-        return ResponseEntity.ok(collecteService.mettreAJour(id, request));
+            @RequestBody CollecteRequest request) {
+        Collecte updated = collecteService.updateCollecte(id, request);
+        return ResponseEntity.ok(toResponse(updated));
     }
 
-    /**
-     * DELETE /api/collectes/{id}
-     * Delete a collecte (only if no tournées or all tournées are ANNULEE).
-     */
+    // ═══════════════════════════════════════════════════════════════
+    // DELETE
+    // ═══════════════════════════════════════════════════════════════
+
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('RESPONSABLE', 'ADMIN')")
-    public ResponseEntity<Void> supprimer(@PathVariable String id) {
-        collecteService.supprimer(id);
+    @Operation(summary = "Supprimer une collecte (seulement si aucune tournée associée)")
+    public ResponseEntity<Void> deleteCollecte(@PathVariable String id) {
+        collecteService.deleteCollecte(id);
         return ResponseEntity.noContent().build();
     }
 
-    // ─── STATISTICS ────────────────────────────────────────────────────────
+    // ═══════════════════════════════════════════════════════════════
+    // REPORTS
+    // ═══════════════════════════════════════════════════════════════
 
-    /**
-     * GET /api/collectes/{id}/quantite-totale
-     * Get total harvest quantity for this collecte.
-     */
-    @GetMapping("/{id}/quantite-totale")
-    @PreAuthorize("hasAnyRole('RESPONSABLE', 'ADMIN', 'AGRICULTEUR')")
-    public ResponseEntity<Double> getQuantiteTotale(@PathVariable String id) {
-        return ResponseEntity.ok(collecteService.calculerQuantiteTotale(id));
+    @GetMapping("/rapport/verger/{vergerId}")
+    @Operation(summary = "Rapport des collectes par verger")
+    public ResponseEntity<List<CollecteResponse>> getRapportByVerger(@PathVariable String vergerId) {
+        List<CollecteResponse> responses = collecteService.getByVerger(vergerId).stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(responses);
     }
 
-    /**
-     * GET /api/collectes/{id}/complete
-     * Check if all tournées in this collecte are finished.
-     */
-    @GetMapping("/{id}/complete")
-    @PreAuthorize("hasAnyRole('RESPONSABLE', 'ADMIN', 'AGRICULTEUR')")
-    public ResponseEntity<Boolean> isComplete(@PathVariable String id) {
-        return ResponseEntity.ok(collecteService.isComplete(id));
+    @GetMapping("/rapport/annee/{annee}")
+    @Operation(summary = "Rapport des collectes par année")
+    public ResponseEntity<List<CollecteResponse>> getRapportByAnnee(@PathVariable String annee) {
+        List<CollecteResponse> responses = collecteService.getByAnnee(annee).stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(responses);
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // HELPER METHODS
+    // ═══════════════════════════════════════════════════════════════
+
+    private CollecteResponse toResponse(Collecte collecte) {
+        return CollecteResponse.builder()
+                .id(collecte.getId())
+                .code(collecte.getCode())
+                .statut(collecte.getStatut())
+                .annee(collecte.getAnnee())
+                .numero(collecte.getNumero())
+                .vergerId(collecte.getVergerId())
+                .dateDebutCampagne(collecte.getDateDebutCampagne())
+                .dateFinCampagne(collecte.getDateFinCampagne())
+                .nbreTournees(collecte.getNbreTournees())
+                .quantiteTotaleKg(collecte.getQuantiteTotaleKg())
+                .totalArbresRecoltes(collecte.getTotalArbresRecoltes())
+                .rendementMoyenParArbre(collecte.getRendementMoyenParArbre())
+                .efficaciteMoyenne(collecte.getEfficaciteMoyenne())
+                .observations(collecte.getObservations())
+                .estCloturee(collecte.getEstCloturee())
+                .dateCreation(collecte.getDateCreation())
+                .build();
     }
 }

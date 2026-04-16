@@ -21,10 +21,8 @@ public interface TourneeRepository extends MongoRepository<Tournee, String> {
 
     List<Tournee> findByVerger(Verger verger);
 
-    @Query("{ 'verger.$id': { $oid: ?0 } }")
     List<Tournee> findByVergerId(String vergerId);
 
-    @Query("{ 'verger.$id': { $oid: ?0 }, 'statut': 'TERMINEE' }")
     List<Tournee> findTermineesByVergerId(String vergerId);
 
     @Query("{ 'travailleurs.$id': { $oid: ?0 } }")

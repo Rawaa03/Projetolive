@@ -147,66 +147,98 @@ public class CollecteServiceImpl implements CollecteService {
         return collecteRepo.save(collecte);
     }
 
-@Override
-public void updateCollecteStats(String collecteId) {
-    System.out.println("=== 📊 updateCollecteStats START ===");
-    System.out.println("Collecte ID: " + collecteId);
-    
-    // Get all tournées for this collecte (1 query)
-    List<Tournee> tournees = tourneeRepo.findByCollecteId(collecteId);
-    System.out.println("Nombre de tournées trouvées: " + tournees.size());
-    
-    if (tournees.isEmpty()) {
-        System.out.println("Aucune tournée trouvée, retour");
-        return;
+    @Override
+    public void updateCollecteStats(String collecteId) {
+        System.out.println("=== 📊 updateCollecteStats START ===");
+        System.out.println("Collecte ID: " + collecteId);
+        
+        // Get all tournées for this collecte (1 query)
+        List<Tournee> tournees = tourneeRepo.findByCollecteId(collecteId);
+        System.out.println("Nombre de tournées trouvées: " + tournees.size());
+        
+        if (tournees.isEmpty()) {
+            System.out.println("Aucune tournée trouvée, retour");
+            return;
+        }
+        
+        // Afficher chaque tournée
+        for (Tournee t : tournees) {
+            System.out.println("  Tournée: " + t.getId() + 
+                             ", statut: " + t.getStatut() + 
+                             ", quantite: " + t.getQuantiteCollecteeKg() +
+                             ", nbreArbre: " + t.getNbreArbre());
+        }
+        
+        // Calculate aggregates from TERMINATED tournées only
+        int nbreTournees = tournees.size();
+        double quantiteTotaleKg = tournees.stream()
+                .filter(t -> t.getQuantiteCollecteeKg() != null && t.getStatut() == StatutTournee.TERMINEE)
+                .mapToDouble(Tournee::getQuantiteCollecteeKg)
+                .sum();
+        int totalArbresRecoltes = tournees.stream()
+                .filter(t -> t.getNbreArbre() != null && t.getStatut() == StatutTournee.TERMINEE)
+                .mapToInt(Tournee::getNbreArbre)
+                .sum();
+        
+        // Calculer l'efficacité moyenne
+        double efficaciteMoyenne = tournees.stream()
+                .filter(t -> t.getStatut() == StatutTournee.TERMINEE)
+                .mapToDouble(this::calculerEfficacite)
+                .average()
+                .orElse(0.0);
+        
+        System.out.println("Calculs:");
+        System.out.println("  nbreTournees (total): " + nbreTournees);
+        System.out.println("  quantiteTotaleKg (terminées): " + quantiteTotaleKg);
+        System.out.println("  totalArbresRecoltes (terminées): " + totalArbresRecoltes);
+        System.out.println("  efficaciteMoyenne: " + efficaciteMoyenne);
+        
+        Collecte collecte = getById(collecteId);
+        System.out.println("Collecte AVANT mise à jour:");
+        System.out.println("  nbreTournees: " + collecte.getNbreTournees());
+        System.out.println("  quantiteTotaleKg: " + collecte.getQuantiteTotaleKg());
+        System.out.println("  totalArbresRecoltes: " + collecte.getTotalArbresRecoltes());
+        
+        collecte.setNbreTournees(nbreTournees);
+        collecte.setQuantiteTotaleKg(quantiteTotaleKg);
+        collecte.setTotalArbresRecoltes(totalArbresRecoltes);
+        collecte.setEfficaciteMoyenne(efficaciteMoyenne);
+        
+        if (totalArbresRecoltes > 0) {
+            collecte.setRendementMoyenParArbre(quantiteTotaleKg / totalArbresRecoltes);
+            System.out.println("  rendementMoyenParArbre: " + collecte.getRendementMoyenParArbre());
+        }
+        
+        // ✅ Vérifier si le verger est entièrement récolté pour clôturer la collecte
+        if (collecte.getVergerId() != null) {
+            Verger verger = vergerRepo.findById(collecte.getVergerId()).orElse(null);
+            if (verger != null && totalArbresRecoltes >= verger.getNbArbre()) {
+                collecte.setEstCloturee(true);
+                collecte.setDateFinCampagne(new Date());
+                collecte.setStatut(StatutCollecte.TERMINEE);
+                System.out.println("🏁🏁🏁 Collecte terminée automatiquement ! Tous les arbres sont récoltés ("
+                    + totalArbresRecoltes + "/" + verger.getNbArbre() + " arbres)");
+            }
+        }
+        
+        Collecte saved = collecteRepo.save(collecte);
+        System.out.println("Collecte APRÈS mise à jour:");
+        System.out.println("  nbreTournees: " + saved.getNbreTournees());
+        System.out.println("  quantiteTotaleKg: " + saved.getQuantiteTotaleKg());
+        System.out.println("  totalArbresRecoltes: " + saved.getTotalArbresRecoltes());
+        System.out.println("  statut: " + saved.getStatut());
+        System.out.println("  estCloturee: " + saved.getEstCloturee());
+        System.out.println("=== 📊 updateCollecteStats END ===");
     }
-    
-    // Afficher chaque tournée
-    for (Tournee t : tournees) {
-        System.out.println("  Tournée: " + t.getId() + 
-                         ", statut: " + t.getStatut() + 
-                         ", quantite: " + t.getQuantiteCollecteeKg() +
-                         ", nbreArbre: " + t.getNbreArbre());
+
+    // Ajouter cette méthode helper pour calculer l'efficacité
+    private double calculerEfficacite(Tournee t) {
+        if (t.getTempsTotal() == null || t.getTempsTotal() == 0) return 0.0;
+        if (t.getDistanceTotale() == null || t.getDistanceTotale() == 0) return 0.0;
+        if (t.getQuantiteCollecteeKg() == null || t.getQuantiteCollecteeKg() == 0) return 0.0;
+        double heures = t.getTempsTotal() / 60.0;
+        return Math.min((t.getQuantiteCollecteeKg() / (t.getDistanceTotale() * heures)) * 10.0, 100.0);
     }
-    
-    // Calculate aggregates from TERMINATED tournées only
-    int nbreTournees = tournees.size();
-    double quantiteTotaleKg = tournees.stream()
-            .filter(t -> t.getQuantiteCollecteeKg() != null && t.getStatut() == StatutTournee.TERMINEE)
-            .mapToDouble(Tournee::getQuantiteCollecteeKg)
-            .sum();
-    int totalArbresRecoltes = tournees.stream()
-            .filter(t -> t.getNbreArbre() != null && t.getStatut() == StatutTournee.TERMINEE)
-            .mapToInt(Tournee::getNbreArbre)
-            .sum();
-    
-    System.out.println("Calculs:");
-    System.out.println("  nbreTournees (total): " + nbreTournees);
-    System.out.println("  quantiteTotaleKg (terminées): " + quantiteTotaleKg);
-    System.out.println("  totalArbresRecoltes (terminées): " + totalArbresRecoltes);
-    
-    Collecte collecte = getById(collecteId);
-    System.out.println("Collecte AVANT mise à jour:");
-    System.out.println("  nbreTournees: " + collecte.getNbreTournees());
-    System.out.println("  quantiteTotaleKg: " + collecte.getQuantiteTotaleKg());
-    System.out.println("  totalArbresRecoltes: " + collecte.getTotalArbresRecoltes());
-    
-    collecte.setNbreTournees(nbreTournees);
-    collecte.setQuantiteTotaleKg(quantiteTotaleKg);
-    collecte.setTotalArbresRecoltes(totalArbresRecoltes);
-    
-    if (totalArbresRecoltes > 0) {
-        collecte.setRendementMoyenParArbre(quantiteTotaleKg / totalArbresRecoltes);
-        System.out.println("  rendementMoyenParArbre: " + collecte.getRendementMoyenParArbre());
-    }
-    
-    Collecte saved = collecteRepo.save(collecte);
-    System.out.println("Collecte APRÈS mise à jour:");
-    System.out.println("  nbreTournees: " + saved.getNbreTournees());
-    System.out.println("  quantiteTotaleKg: " + saved.getQuantiteTotaleKg());
-    System.out.println("  totalArbresRecoltes: " + saved.getTotalArbresRecoltes());
-    System.out.println("=== 📊 updateCollecteStats END ===");
-}
     @Override
     public String getCampagneAnnee(Date date) {
         Calendar cal = Calendar.getInstance();

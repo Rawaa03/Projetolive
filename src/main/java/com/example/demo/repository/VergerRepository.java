@@ -36,6 +36,7 @@ public interface VergerRepository extends MongoRepository<Verger, String> {
      * Find all non-deleted vergers belonging to a given agriculteur that have GPS coordinates.
      * Used by the agriculteur map view to show only their own vergers.
      */
+    List<Verger> findByAgriculteurId(String id);
     @Query("{ 'agriculteur': ?0, 'location': { $exists: true, $ne: null }, 'estSupprimer': false }")
     List<Verger> findByAgriculteurWithLocation(ObjectId agriculteurId);
 

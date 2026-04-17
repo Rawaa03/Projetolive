@@ -7,6 +7,6 @@ public enum Role {
     AGRICULTEUR,
     TRAVAILLEUR,
     TRANSPORTEUR,
-    TRAVAILLEUR
+
     
 }

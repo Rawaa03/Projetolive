@@ -1,3 +1,4 @@
+
 package com.example.demo.repository;
 
 import com.example.demo.model.StatutTournee;
@@ -20,10 +21,8 @@ public interface TourneeRepository extends MongoRepository<Tournee, String> {
 
     List<Tournee> findByVerger(Verger verger);
 
-    @Query("{ 'verger.$id': { $oid: ?0 } }")
     List<Tournee> findByVergerId(String vergerId);
 
-    @Query("{ 'verger.$id': { $oid: ?0 }, 'statut': 'TERMINEE' }")
     List<Tournee> findTermineesByVergerId(String vergerId);
 
     @Query("{ 'travailleurs.$id': { $oid: ?0 } }")
@@ -39,6 +38,14 @@ public interface TourneeRepository extends MongoRepository<Tournee, String> {
     List<Tournee> findActive();
 
     boolean existsByCode(String code);
+
+    List<Tournee> findByCollecteId(String collecteId);
+
+    @Query(value = "{ 'collecte.$id': { $oid: ?0 } }", fields = "{ 'verger': 1 }")
+    Tournee findFirstByCollecteId(String collecteId);
+
+    @Query(value = "{ 'collecte.$id': { $oid: ?0 } }", count = true)
+    long countByCollecteId(String collecteId);
 
     // ── Availability overlap queries ───────────────────────────────
     // A conflict exists when an active tournée overlaps [dateDebut, dateFin]:

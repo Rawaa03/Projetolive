@@ -13,6 +13,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/vergers")
@@ -21,12 +22,15 @@ public class VergerController {
 
     private final VergerService vergerService;
 
-    // Only RESPONSABLE can create vergers
+    // ── CREATE ────────────────────────────────────────────────────────────────
+
     @PostMapping
     @PreAuthorize("hasAnyRole('RESPONSABLE','ADMIN')")
     public ResponseEntity<VergerResponse> creer(@Valid @RequestBody VergerRequest req) {
         return ResponseEntity.ok(vergerService.creer(req));
     }
+
+    // ── READ ──────────────────────────────────────────────────────────────────
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('RESPONSABLE', 'ADMIN', 'AGRICULTEUR')")
@@ -43,11 +47,11 @@ public class VergerController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('RESPONSABLE', 'ADMIN')")    public ResponseEntity<List<VergerResponse>> getAll() {
+    @PreAuthorize("hasAnyRole('RESPONSABLE', 'ADMIN')")
+    public ResponseEntity<List<VergerResponse>> getAll() {
         return ResponseEntity.ok(vergerService.getAll());
     }
 
-    // Agriculteur sees only their own; RESPONSABLE sees any
     @GetMapping("/agriculteur/{agriculteurId}")
     @PreAuthorize("hasAnyRole('RESPONSABLE', 'ADMIN', 'AGRICULTEUR')")
     public ResponseEntity<List<VergerResponse>> getByAgriculteur(
@@ -57,18 +61,83 @@ public class VergerController {
         boolean isAgriculteur = userDetails.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_AGRICULTEUR"));
         if (isAgriculteur) {
-            vergerService.verifierProprietaireVerger(agriculteurId, userDetails);
-        }        return ResponseEntity.ok(vergerService.getByAgriculteur(agriculteurId));
+            vergerService.verifierProprietaire(agriculteurId, userDetails);
+        }
+        return ResponseEntity.ok(vergerService.getByAgriculteur(agriculteurId));
     }
 
     @GetMapping("/statut")
-
     @PreAuthorize("hasAnyRole('RESPONSABLE','ADMIN')")
     public ResponseEntity<List<VergerResponse>> getByStatut(@RequestParam StatutVerger statut) {
         return ResponseEntity.ok(vergerService.getByStatut(statut));
     }
 
-    // RESPONSABLE or owner AGRICULTEUR can update
+    // ── GEOLOCATION ENDPOINTS ─────────────────────────────────────────────────
+
+    /**
+     * GET /api/vergers/carte
+     * Returns all georeferenced vergers — for the RESPONSABLE/ADMIN map view.
+     * Only returns vergers that have a location set.
+     */
+    @GetMapping("/carte")
+    @PreAuthorize("hasAnyRole('RESPONSABLE', 'ADMIN')")
+    public ResponseEntity<List<VergerResponse>> getCarteAll() {
+        return ResponseEntity.ok(vergerService.getAllWithLocation());
+    }
+
+    /**
+     * GET /api/vergers/carte/agriculteur/{agriculteurId}
+     * Returns georeferenced vergers belonging to the given agriculteur.
+     * An AGRICULTEUR can only see their own vergers.
+     */
+    @GetMapping("/carte/agriculteur/{agriculteurId}")
+    @PreAuthorize("hasAnyRole('RESPONSABLE', 'ADMIN', 'AGRICULTEUR')")
+    public ResponseEntity<List<VergerResponse>> getCarteByAgriculteur(
+            @PathVariable String agriculteurId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        boolean isAgriculteur = userDetails.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_AGRICULTEUR"));
+        if (isAgriculteur) {
+            vergerService.verifierProprietaire(agriculteurId, userDetails);
+        }
+        return ResponseEntity.ok(vergerService.getByAgriculteurWithLocation(agriculteurId));
+    }
+
+    /**
+     * GET /api/vergers/proches?longitude=10.76&latitude=34.74&rayon=5000
+     * Find vergers within 'rayon' metres of the given point.
+     * Default radius: 10 000 m (10 km).
+     */
+    @GetMapping("/proches")
+    @PreAuthorize("hasAnyRole('RESPONSABLE', 'ADMIN', 'AGRICULTEUR')")
+    public ResponseEntity<List<VergerResponse>> getProches(
+            @RequestParam Double longitude,
+            @RequestParam Double latitude,
+            @RequestParam(defaultValue = "10000") Double rayon) {
+        return ResponseEntity.ok(vergerService.findNearby(longitude, latitude, rayon));
+    }
+
+    /**
+     * PATCH /api/vergers/{id}/localisation
+     * Update ONLY the GPS location of a verger (no other fields changed).
+     * Body: { "latitude": 34.74, "longitude": 10.76, "adresseIndicative": "..." }
+     */
+    @PatchMapping("/{id}/localisation")
+    @PreAuthorize("hasAnyRole('RESPONSABLE', 'ADMIN')")
+    public ResponseEntity<VergerResponse> mettreAJourLocalisation(
+            @PathVariable String id,
+            @RequestBody Map<String, Object> body) {
+
+        Double latitude  = body.get("latitude")  != null ? ((Number) body.get("latitude")).doubleValue()  : null;
+        Double longitude = body.get("longitude") != null ? ((Number) body.get("longitude")).doubleValue() : null;
+        String adresse   = body.get("adresseIndicative") != null ? body.get("adresseIndicative").toString() : null;
+
+        return ResponseEntity.ok(vergerService.mettreAJourLocalisation(id, latitude, longitude, adresse));
+    }
+
+    // ── UPDATE ────────────────────────────────────────────────────────────────
+
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('RESPONSABLE', 'AGRICULTEUR','ADMIN')")
     public ResponseEntity<VergerResponse> mettreAJour(
@@ -80,10 +149,10 @@ public class VergerController {
                 .anyMatch(a -> a.getAuthority().equals("ROLE_AGRICULTEUR"));
         if (isAgriculteur) {
             vergerService.verifierProprietaireVerger(id, userDetails);
-        }        return ResponseEntity.ok(vergerService.mettreAJour(id, req));
+        }
+        return ResponseEntity.ok(vergerService.mettreAJour(id, req));
     }
 
-    // RESPONSABLE or owner AGRICULTEUR can change statut
     @PatchMapping("/{id}/statut")
     @PreAuthorize("hasAnyRole('RESPONSABLE', 'AGRICULTEUR','ADMIN')")
     public ResponseEntity<VergerResponse> changerStatut(
@@ -95,10 +164,12 @@ public class VergerController {
                 .anyMatch(a -> a.getAuthority().equals("ROLE_AGRICULTEUR"));
         if (isAgriculteur) {
             vergerService.verifierProprietaireVerger(id, userDetails);
-        }        return ResponseEntity.ok(vergerService.changerStatut(id, statut));
+        }
+        return ResponseEntity.ok(vergerService.changerStatut(id, statut));
     }
 
-    // Only RESPONSABLE can soft-delete
+    // ── DELETE ────────────────────────────────────────────────────────────────
+
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyRole('RESPONSABLE','ADMIN')")
     public ResponseEntity<Void> desactiver(@PathVariable String id) {

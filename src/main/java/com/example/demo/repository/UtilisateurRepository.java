@@ -12,13 +12,12 @@ import java.util.Optional;
 
 @Repository
 public interface UtilisateurRepository extends MongoRepository<Utilisateur, String> {
-
     Optional<Utilisateur> findByEmail(String email);
 
     Optional<Utilisateur> findByEmailAndRole(String email, Role role);
 
     // ========== MÉTHODES AVEC @Query UTILISANT LE BON NOM DE CHAMP ==========
-    
+
     @Query("{ 'compteActif': false }")
     List<Utilisateur> findUsersWithAccountFalse();
 
@@ -32,21 +31,20 @@ public interface UtilisateurRepository extends MongoRepository<Utilisateur, Stri
     List<Utilisateur> findByCompteActifFalse();  // Changé de findByACompteFalse
 
     // ========== MÉTHODES POUR AUTH SERVICE ==========
-    
+
     @Query("{ 'role': ?0, 'compteActif': false }")
     List<Utilisateur> findByRoleAndCompteActifFalse(Role role);
-    
+
     @Query(value = "{ 'role': ?0, 'compteActif': false }", count = true)
     long countByRoleAndCompteActifFalse(Role role);
-    
+
     @Query(value = "{ 'compteActif': false }", count = true)
     long countByCompteActifFalse();
 
     // ========== MÉTHODES SIMPLES ==========
-    
+
     List<Utilisateur> findByRole(Role role);
 
-    List<Utilisateur> findByRoleAndDisponibleTrue(Role role);
 
     boolean existsByEmail(String email);
 

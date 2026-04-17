@@ -27,7 +27,7 @@ public class ProjetCollecteOliveApplication {
     public CommandLineRunner initData(UtilisateurRepository utilisateurRepository) {
         return args -> {
             System.out.println("\n🚀 Initialisation des données de démarrage...");
-            
+
             // ===== CREATE ADMIN USER =====
             if (utilisateurRepository.findByEmail("admin@cooperative.com").isEmpty()) {
                 Utilisateur admin = new Utilisateur();
@@ -39,7 +39,7 @@ public class ProjetCollecteOliveApplication {
                 admin.setAdresse("Sfax, Tunisie");
                 admin.setEstActif(true);
                 admin.setDateCreation(new Date());
-admin.setCompteActif(true);
+                admin.setCompteActif(true);
                 BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
                 admin.setMotDePasse(encoder.encode("admin123"));
 
@@ -66,9 +66,9 @@ admin.setCompteActif(true);
                 responsable.setCompteActif(true);
                 BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
                 responsable.setMotDePasse(encoder.encode("responsable123")); // Using teammate's password
-                
+
                 utilisateurRepository.save(responsable);
-                
+
                 System.out.println("✅ Utilisateur RESPONSABLE créé avec succès !");
                 System.out.println("   📧 Email: responsable@cooperative.com");
                 System.out.println("   🔑 Mot de passe: responsable123");
@@ -77,11 +77,11 @@ admin.setCompteActif(true);
             } else {
                 System.out.println("ℹ️ Utilisateur RESPONSABLE existe déjà");
             }
-            
+
             // ===== OPTIONAL: Create a test AGRICULTEUR user =====
-            if (utilisateurRepository.findByEmail("agriculteur@test.com").isEmpty()) {
+            if (utilisateurRepository.findByEmail("agriculteur2@test.com").isEmpty()) {
                 Utilisateur agriculteur = new Utilisateur();
-                agriculteur.setEmail("agriculteur@test.com");
+                agriculteur.setEmail("agriculteur2@test.com");
                 agriculteur.setPrenom("Mohamed");
                 agriculteur.setNom("Ben Ali");
                 agriculteur.setTelephone("+216 55 555 555");
@@ -89,18 +89,18 @@ admin.setCompteActif(true);
                 agriculteur.setAdresse("Mahdia, Tunisie");
                 agriculteur.setEstActif(true);
                 agriculteur.setDateCreation(new Date());
-                
+
                 BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
                 agriculteur.setMotDePasse(encoder.encode("agriculteur123"));
-                
+
                 utilisateurRepository.save(agriculteur);
-                
+
                 System.out.println("✅ Utilisateur AGRICULTEUR créé avec succès !");
                 System.out.println("   📧 Email: agriculteur@test.com");
                 System.out.println("   🔑 Mot de passe: agriculteur123");
                 System.out.println("   👤 Rôle: AGRICULTEUR");
             }
-            
+
             // ===== OPTIONAL: Create a test EQUIPE_RECOLTE user =====
             if (utilisateurRepository.findByEmail("equipe@recolte.com").isEmpty()) {
                 Utilisateur equipeRecolte = new Utilisateur();
@@ -112,18 +112,18 @@ admin.setCompteActif(true);
                 equipeRecolte.setAdresse("Sousse, Tunisie");
                 equipeRecolte.setEstActif(true);
                 equipeRecolte.setDateCreation(new Date());
-                
+
                 BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
                 equipeRecolte.setMotDePasse(encoder.encode("equipe123"));
-                
+
                 utilisateurRepository.save(equipeRecolte);
-                
+
                 System.out.println("✅ Utilisateur EQUIPE_RECOLTE créé avec succès !");
                 System.out.println("   📧 Email: equipe@recolte.com");
                 System.out.println("   🔑 Mot de passe: equipe123");
                 System.out.println("   👤 Rôle: EQUIPE_RECOLTE");
             }
-            
+
             System.out.println("\n🎉 Initialisation des données terminée !");
             System.out.println("========================================");
             System.out.println("📋 Résumé des utilisateurs disponibles:");

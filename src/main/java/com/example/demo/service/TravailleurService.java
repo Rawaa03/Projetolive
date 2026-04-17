@@ -43,19 +43,7 @@ public class TravailleurService {
         return utilisateurRepository.findByRole(Role.TRAVAILLEUR);
     }
 
-    public List<Utilisateur> listerTravailleursDisponibles() {
-        List<Utilisateur> tousLesTravailleurs = utilisateurRepository.findByRole(Role.TRAVAILLEUR);
-        return tousLesTravailleurs.stream()
-                .filter(Utilisateur::isDisponible)
-                .collect(Collectors.toList());
-    }
 
-    public List<Utilisateur> listerTravailleursDisponiblesPourPeriode(Date dateDebut, Date dateFin) {
-        List<Utilisateur> tousLesTravailleurs = utilisateurRepository.findByRole(Role.TRAVAILLEUR);
-        return tousLesTravailleurs.stream()
-                .filter(travailleur -> travailleur.estDisponiblePour(dateDebut, dateFin))
-                .collect(Collectors.toList());
-    }
 
     public List<Utilisateur> listerTravailleursParSpecialite(String specialite) {
         return utilisateurRepository.findByRoleAndSpecialitesContaining(Role.TRAVAILLEUR, specialite);

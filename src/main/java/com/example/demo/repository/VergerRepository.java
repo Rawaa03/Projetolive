@@ -22,4 +22,28 @@ public interface VergerRepository extends MongoRepository<Verger, String> {
 
     @Query(value = "{ 'agriculteur' : ?0 }", exists = true)
     boolean existsByAgriculteurId(ObjectId agriculteurId);
+
+    // ── Geolocation queries ─────────────────────────────────────────────────
+
+    /**
+     * Find all non-deleted vergers that have GPS coordinates set.
+     * Used by the responsable/admin map view to show all georeferenced vergers.
+     */
+    @Query("{ 'location': { $exists: true, $ne: null }, 'estSupprimer': false }")
+    List<Verger> findAllWithLocation();
+
+    /**
+     * Find all non-deleted vergers belonging to a given agriculteur that have GPS coordinates.
+     * Used by the agriculteur map view to show only their own vergers.
+     */
+    @Query("{ 'agriculteur': ?0, 'location': { $exists: true, $ne: null }, 'estSupprimer': false }")
+    List<Verger> findByAgriculteurWithLocation(ObjectId agriculteurId);
+
+    /**
+     * Find vergers within a given radius (in metres) of a point.
+     * GeoJSON coordinates are [longitude, latitude].
+     * Requires the 2dsphere index declared on Verger.location.
+     */
+    @Query("{ 'location': { $nearSphere: { $geometry: { type: 'Point', coordinates: [?0, ?1] }, $maxDistance: ?2 } }, 'estSupprimer': false }")
+    List<Verger> findNearby(Double longitude, Double latitude, Double maxDistanceMetres);
 }

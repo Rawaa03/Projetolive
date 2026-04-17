@@ -34,6 +34,7 @@ public class TourneeRequest {
 
     @PositiveOrZero(message = "La distance doit être positive ou nulle")
     private Double distanceTotale;
+    private String collecteId;
 
     private String observations;
 }

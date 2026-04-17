@@ -66,7 +66,8 @@ public class Tournee {
     private Boolean collecteFinalisee;
 
     private String observations;
-
+    @DocumentReference(lazy = true)
+    private Collecte collecte;
     @CreatedDate
     private Date dateCreation;
 }

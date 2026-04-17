@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -19,6 +20,7 @@ import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 public class SecurityConfig {
 
     @Autowired
@@ -39,18 +41,19 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/login/responsable").permitAll()
                         .requestMatchers("/api/auth/login/admin").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
-                        
+
                         // ADMIN only endpoints
                         .requestMatchers("/api/auth/utilisateurs").hasRole("ADMIN")
                         .requestMatchers("/api/auth/utilisateurs/**").hasRole("ADMIN")
                         .requestMatchers("/api/tableau-de-bord/**").hasRole("ADMIN")
-                        
+
                         // ADMIN and RESPONSABLE endpoints
+                        .requestMatchers("/api/responsable/**").hasAnyRole("ADMIN", "RESPONSABLE")
                         .requestMatchers("/api/vergers/**").hasAnyRole("ADMIN", "RESPONSABLE")
-                        
+
                         // ADMIN, RESPONSABLE, and AGRICULTEUR endpoints
                         .requestMatchers("/api/alertes/**").hasAnyRole("ADMIN", "RESPONSABLE", "AGRICULTEUR")
-                        
+
                         // ADMIN, RESPONSABLE, and EQUIPE_RECOLTE endpoints
                         .requestMatchers("/api/tournees/**").hasAnyRole("ADMIN", "RESPONSABLE", "EQUIPE_RECOLTE")
                         .requestMatchers("/api/travailleurs/**").hasRole("RESPONSABLE")  // Only admin can access worker management

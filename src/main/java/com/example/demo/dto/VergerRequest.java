@@ -8,7 +8,7 @@ import lombok.Data;
 public class VergerRequest {
 
     @NotBlank
-    private String agriculteurId; // renamed from proprietaireId
+    private String agriculteurId;
 
     @Positive
     private Double superficie;
@@ -17,7 +17,7 @@ public class VergerRequest {
     private String typeOlive;
 
     @Positive
-    private Integer nbArbre; // renamed from nombreArbres
+    private Integer nbArbre;
 
     @PositiveOrZero
     private Double rendementEstime;
@@ -26,4 +26,22 @@ public class VergerRequest {
     private Integer maturiteActuelle;
 
     private StatutVerger statut;
+
+    // ── Geolocation fields (optional — a verger can exist without GPS coords) ──
+    /**
+     * Latitude of the verger (e.g. 34.7400 for Sfax region).
+     * Paired with longitude to build the GeoJsonPoint.
+     */
+    private Double latitude;
+
+    /**
+     * Longitude of the verger (e.g. 10.7600 for Sfax region).
+     */
+    private Double longitude;
+
+    /**
+     * Human-readable address / locality (e.g. "Route de Gabès km 12, Sfax").
+     * Stored as-is in Geolocalisation.adresseIndicative.
+     */
+    private String adresseIndicative;
 }

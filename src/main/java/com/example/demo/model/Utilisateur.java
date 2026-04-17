@@ -74,52 +74,12 @@ public class Utilisateur {
     /**
      * Vérifie si le travailleur est disponible pour une période donnée
      */
-    public boolean estDisponiblePour(Date dateDebut, Date dateFin) {
-        // Un travailleur sans collectes assignées est toujours disponible
-        if (this.collectesAssignees == null || this.collectesAssignees.isEmpty()) {
-            return true;
-        }
 
-        for (Collecte collecte : this.collectesAssignees) {
-            if (collecte.getDateDebut() == null || collecte.getDateFin() == null) {
-                // Si une collecte n'a pas de date de fin, elle est considérée comme en cours
-                return false;
-            }
 
-            if (datesSeChevauchent(dateDebut, dateFin, collecte.getDateDebut(), collecte.getDateFin())) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    /**
-     * Vérifie si le travailleur est actuellement en collecte
-     */
-    public boolean estEnCollecte() {
-        if (this.collectesAssignees == null) return false;
-
-        Date now = new Date();
-
-        for (Collecte collecte : this.collectesAssignees) {
-            if (collecte.getDateDebut() != null && collecte.getDateFin() == null) {
-                return true;
-            }
-            if (collecte.getDateDebut() != null && collecte.getDateFin() != null) {
-                if (collecte.getDateDebut().before(now) && collecte.getDateFin().after(now)) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
 
     /**
      * Vérifie si le travailleur est disponible (pas en collecte)
      */
-    public boolean isDisponible() {
-        return !estEnCollecte();
-    }
 
     /**
      * Compte le nombre de collectes assignées

@@ -1,5 +1,6 @@
 package com.example.demo.dto;
 
+import com.example.demo.model.Geolocalisation;
 import com.example.demo.model.enums.StatutVerger;
 import lombok.Builder;
 import lombok.Data;
@@ -21,4 +22,11 @@ public class VergerResponse {
     private Date dateDerniereRecolte;
     private Boolean estSupprimer;
     private Date dateCreation;
+
+    // ── Geolocation ─────────────────────────────────────────────────────────
+    /**
+     * Embedded human-readable geolocation (latitude, longitude, adresseIndicative).
+     * Null when no GPS coordinates have been set for this verger.
+     */
+    private Geolocalisation geolocalisation;
 }

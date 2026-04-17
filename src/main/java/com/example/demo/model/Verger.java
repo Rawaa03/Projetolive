@@ -7,6 +7,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.mongodb.core.geo.GeoJsonPoint;
+import org.springframework.data.mongodb.core.index.GeoSpatialIndexType;
+import org.springframework.data.mongodb.core.index.GeoSpatialIndexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.DocumentReference;
 
@@ -21,8 +24,9 @@ public class Verger {
 
     @Id
     private String id;
+
     @DocumentReference(lazy = true)
-    private Utilisateur agriculteur; //reference agriculteur
+    private Utilisateur agriculteur;
 
     private Double superficie;             // hectares
     private String typeOlive;             // Chemlali, Chétoui, Picholine…
@@ -34,8 +38,22 @@ public class Verger {
 
     private Date dateDerniereRecolte;
 
+    // ── Geolocation fields (same pattern as AlerteTerrain) ─────────────────
+    /**
+     * GeoJSON Point [longitude, latitude] — used for $nearSphere queries.
+     * Requires 2dsphere index (created automatically via @GeoSpatialIndexed).
+     */
+    @GeoSpatialIndexed(type = GeoSpatialIndexType.GEO_2DSPHERE)
+    private GeoJsonPoint location;
+
+    /**
+     * Human-readable embedded object — stored inline for display in the frontend.
+     * Same pattern used in AlerteTerrain.
+     */
+    private Geolocalisation geolocalisation;
+
     @Builder.Default
-    private Boolean estSupprimer= false;
+    private Boolean estSupprimer = false;
 
     @CreatedDate
     private Date dateCreation;

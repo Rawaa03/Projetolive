@@ -38,7 +38,7 @@ public class UserProfileController {
         Utilisateur utilisateur = utilisateurRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
         Utilisateur misAJour = authService.mettreAJourProfil(utilisateur.getId(), updates);
-
+        
         Map<String, Object> response = new HashMap<>();
         response.put("message", "Profil mis à jour avec succès");
         response.put("utilisateur", misAJour);
@@ -52,13 +52,13 @@ public class UserProfileController {
         String email = authentication.getName();
         Utilisateur utilisateur = utilisateurRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
-
+        
         authService.changerMotDePasse(
-                utilisateur.getId(),
-                request.get("ancienMotDePasse"),
-                request.get("nouveauMotDePasse")
+            utilisateur.getId(),
+            request.get("ancienMotDePasse"),
+            request.get("nouveauMotDePasse")
         );
-
+        
         Map<String, String> response = new HashMap<>();
         response.put("message", "Mot de passe changé avec succès");
         return ResponseEntity.ok(response);

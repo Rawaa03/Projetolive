@@ -62,7 +62,7 @@ public class CollecteServiceImpl implements CollecteService {
     @Override
     public Collecte updateCollecte(String id, CollecteRequest request) {
         Collecte collecte = getById(id);
-
+        
         // Vérifier qu'on ne peut pas modifier une collecte terminée
         if (collecte.getStatut() == StatutCollecte.TERMINEE) {
             throw new IllegalStateException("Impossible de modifier une collecte terminée");
@@ -82,7 +82,6 @@ public class CollecteServiceImpl implements CollecteService {
     @Override
     public void deleteCollecte(String id) {
         Collecte collecte = getById(id);
-
         // Vérifier qu'il n'y a pas de tournées associées
         List<Tournee> tournees = tourneeRepo.findByCollecteId(id);
         if (!tournees.isEmpty()) {
@@ -96,7 +95,6 @@ public class CollecteServiceImpl implements CollecteService {
         if (collecte.getStatut() == StatutCollecte.EN_COURS) {
             throw new IllegalStateException("Impossible de supprimer une collecte en cours");
         }
-
         collecteRepo.delete(collecte);
     }
     @Override
@@ -114,7 +112,6 @@ public class CollecteServiceImpl implements CollecteService {
         } else if (!tournees.isEmpty()) {
             verger = tournees.get(0).getVerger();
         }
-
         return CollecteDetailDTO.builder()
                 .collecte(collecte)
                 .tournees(tournees)
@@ -143,7 +140,6 @@ public class CollecteServiceImpl implements CollecteService {
                 .estCloturee(false)
                 .dateCreation(new Date())
                 .build();
-
         return collecteRepo.save(collecte);
     }
 
@@ -179,36 +175,30 @@ public class CollecteServiceImpl implements CollecteService {
                 .filter(t -> t.getNbreArbre() != null && t.getStatut() == StatutTournee.TERMINEE)
                 .mapToInt(Tournee::getNbreArbre)
                 .sum();
-
         // Calculer l'efficacité moyenne
         double efficaciteMoyenne = tournees.stream()
                 .filter(t -> t.getStatut() == StatutTournee.TERMINEE)
                 .mapToDouble(this::calculerEfficacite)
                 .average()
                 .orElse(0.0);
-
         System.out.println("Calculs:");
         System.out.println("  nbreTournees (total): " + nbreTournees);
         System.out.println("  quantiteTotaleKg (terminées): " + quantiteTotaleKg);
         System.out.println("  totalArbresRecoltes (terminées): " + totalArbresRecoltes);
         System.out.println("  efficaciteMoyenne: " + efficaciteMoyenne);
-
         Collecte collecte = getById(collecteId);
         System.out.println("Collecte AVANT mise à jour:");
         System.out.println("  nbreTournees: " + collecte.getNbreTournees());
         System.out.println("  quantiteTotaleKg: " + collecte.getQuantiteTotaleKg());
         System.out.println("  totalArbresRecoltes: " + collecte.getTotalArbresRecoltes());
-
         collecte.setNbreTournees(nbreTournees);
         collecte.setQuantiteTotaleKg(quantiteTotaleKg);
         collecte.setTotalArbresRecoltes(totalArbresRecoltes);
         collecte.setEfficaciteMoyenne(efficaciteMoyenne);
-
         if (totalArbresRecoltes > 0) {
             collecte.setRendementMoyenParArbre(quantiteTotaleKg / totalArbresRecoltes);
             System.out.println("  rendementMoyenParArbre: " + collecte.getRendementMoyenParArbre());
         }
-
         // ✅ Vérifier si le verger est entièrement récolté pour clôturer la collecte
         if (collecte.getVergerId() != null) {
             Verger verger = vergerRepo.findById(collecte.getVergerId()).orElse(null);

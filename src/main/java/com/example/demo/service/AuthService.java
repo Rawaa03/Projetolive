@@ -102,7 +102,6 @@ public class AuthService {
         if (!passwordEncoder.matches(motDePasse, utilisateur.getMotDePasse())) {
             throw new RuntimeException("Mot de passe incorrect");
         }
-
         String token = jwtUtils.generateToken(
                 utilisateur.getEmail(),
                 utilisateur.getRole().toString(),
@@ -127,7 +126,6 @@ public class AuthService {
         if (!passwordEncoder.matches(motDePasse, utilisateur.getMotDePasse())) {
             throw new RuntimeException("Mot de passe incorrect");
         }
-
         String token = jwtUtils.generateToken(
                 utilisateur.getEmail(),
                 utilisateur.getRole().toString(),
@@ -184,12 +182,10 @@ public class AuthService {
         } catch (Exception e) {
             System.err.println("❌ Erreur lors de l'envoi de l'email: " + e.getMessage());
         }
-
         Map<String, Object> response = new HashMap<>();
         response.put("message", "Utilisateur créé avec succès");
         response.put("utilisateur", saved);
         response.put("motDePasseGenere", motDePasseGenere); // Pour debug, à retirer en prod
-
         return response;
     }
 
@@ -197,7 +193,6 @@ public class AuthService {
         if (utilisateur.getRole() == null) {
             throw new RuntimeException("Le rôle est requis");
         }
-
         switch (utilisateur.getRole()) {
             case ADMIN:
                 break;
@@ -284,7 +279,6 @@ public class AuthService {
     }
 
     // ========== MÉTHODES POUR L'ADMIN (ACTIVATION) ==========
-
     public List<Utilisateur> getAgriculteursEnAttente() {
         return utilisateurRepository.findByRoleAndCompteActifFalse(Role.AGRICULTEUR);
     }
@@ -314,7 +308,6 @@ public class AuthService {
         agriculteur.setEstActif(true);
 
         Utilisateur sauvegarde = utilisateurRepository.save(agriculteur);
-
         try {
             emailService.envoyerMotDePasse(
                     agriculteur.getEmail(),
@@ -365,7 +358,6 @@ public class AuthService {
     public Map<String, Object> getProfil(String id) {
         Utilisateur utilisateur = utilisateurRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
-
         Map<String, Object> profil = new HashMap<>();
         profil.put("id", utilisateur.getId());
         profil.put("email", utilisateur.getEmail());
@@ -374,14 +366,12 @@ public class AuthService {
         profil.put("telephone", utilisateur.getTelephone());
         profil.put("adresse", utilisateur.getAdresse());
         profil.put("role", utilisateur.getRole());
-
         return profil;
     }
 
     public Utilisateur mettreAJourProfil(String id, Map<String, Object> updates) {
         Utilisateur utilisateur = utilisateurRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
-
         if (updates.containsKey("nom")) {
             utilisateur.setNom((String) updates.get("nom"));
         }
@@ -394,7 +384,6 @@ public class AuthService {
         if (updates.containsKey("adresse")) {
             utilisateur.setAdresse((String) updates.get("adresse"));
         }
-
         return utilisateurRepository.save(utilisateur);
     }
 

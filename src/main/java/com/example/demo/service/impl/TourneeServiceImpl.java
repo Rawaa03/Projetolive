@@ -39,7 +39,6 @@ public class TourneeServiceImpl implements TourneeService {
     public TourneeResponse creer(TourneeRequest req) {
 
         System.out.println("🚀 === DÉBUT CRÉATION TOURNÉE ===");
-
         validateDates(req.getDateDebut(), req.getDateFin());
 
         // Resolve verger
@@ -129,7 +128,7 @@ public class TourneeServiceImpl implements TourneeService {
                 .collecteFinalisee(false)
                 .dateCreation(new Date())
                 .build();
-
+        
         System.out.println("✅ Tournée construite avec collecteId=" + (tournee.getCollecte() != null ? tournee.getCollecte().getId() : "null"));
 
         // Move verger to EN_COURS if still idle
@@ -142,14 +141,14 @@ public class TourneeServiceImpl implements TourneeService {
         System.out.println("💾 Sauvegarde de la tournée...");
         Tournee saved = tourneeRepo.save(tournee);
         System.out.println("✅ Tournée sauvegardée: ID=" + saved.getId() + ", Code=" + saved.getCode());
-
+        
         // Mettre à jour les statistiques de la collecte
         System.out.println("📊 Mise à jour des statistiques de la collecte...");
         collecteService.updateCollecteStats(collecte.getId());
         System.out.println("✅ Statistiques mises à jour");
-
+        
         System.out.println("🎉 === FIN CRÉATION TOURNÉE ===\n");
-
+        
         return toResponse(saved);
     }
     // ═══════════════════════════════════════════════════════════════
@@ -160,35 +159,35 @@ public class TourneeServiceImpl implements TourneeService {
     public TourneeResponse getById(String id) {
         return toResponse(findOrThrow(id));
     }
-    // ═══════════════════════════════════════════════════════════════
-    // VALIDATION DES ARBRES RESTANTS
-    // ═══════════════════════════════════════════════════════════════
+ // ═══════════════════════════════════════════════════════════════
+ // VALIDATION DES ARBRES RESTANTS
+ // ═══════════════════════════════════════════════════════════════
 
-    private void verifierArbresRestants(Verger verger, int nbreArbre) {
-        // Compter TOUTES les tournées non annulées (PLANIFIEE, EN_COURS, TERMINEE)
-        List<Tournee> toutesTournees = tourneeRepo.findByVergerId(verger.getId());
-
-        int arbresDejaPlanifies = toutesTournees.stream()
-                .filter(t -> t.getStatut() != StatutTournee.ANNULEE)
-                .mapToInt(t -> t.getNbreArbre() != null ? t.getNbreArbre() : 0)
-                .sum();
-
-        int arbresRestants = verger.getNbArbre() - arbresDejaPlanifies;
-
-        System.out.println("📊 Vérification des arbres:");
-        System.out.println("  Arbres déjà planifiés/récoltés: " + arbresDejaPlanifies);
-        System.out.println("  Arbres restants: " + arbresRestants);
-        System.out.println("  Arbres demandés: " + nbreArbre);
-
-        if (nbreArbre > arbresRestants) {
-            throw new IllegalStateException(
-                    String.format("❌ Impossible de récolter %d arbres. Il reste seulement %d arbres disponibles (total: %d, déjà planifiés: %d).",
-                            nbreArbre, arbresRestants, verger.getNbArbre(), arbresDejaPlanifies)
-            );
-        }
-
-        System.out.println("✅ Validation OK: " + nbreArbre + " arbres peuvent être récoltés");
-    }    @Override
+private void verifierArbresRestants(Verger verger, int nbreArbre) {
+    // Compter TOUTES les tournées non annulées (PLANIFIEE, EN_COURS, TERMINEE)
+    List<Tournee> toutesTournees = tourneeRepo.findByVergerId(verger.getId());
+    
+    int arbresDejaPlanifies = toutesTournees.stream()
+            .filter(t -> t.getStatut() != StatutTournee.ANNULEE)
+            .mapToInt(t -> t.getNbreArbre() != null ? t.getNbreArbre() : 0)
+            .sum();
+    
+    int arbresRestants = verger.getNbArbre() - arbresDejaPlanifies;
+    
+    System.out.println("📊 Vérification des arbres:");
+    System.out.println("  Arbres déjà planifiés/récoltés: " + arbresDejaPlanifies);
+    System.out.println("  Arbres restants: " + arbresRestants);
+    System.out.println("  Arbres demandés: " + nbreArbre);
+    
+    if (nbreArbre > arbresRestants) {
+        throw new IllegalStateException(
+            String.format("❌ Impossible de récolter %d arbres. Il reste seulement %d arbres disponibles (total: %d, déjà planifiés: %d).",
+                nbreArbre, arbresRestants, verger.getNbArbre(), arbresDejaPlanifies)
+        );
+    }
+    
+    System.out.println("✅ Validation OK: " + nbreArbre + " arbres peuvent être récoltés");
+}    @Override
     public Tournee getTourneeById(String id) {
         return findOrThrow(id);
     }
@@ -270,7 +269,7 @@ public class TourneeServiceImpl implements TourneeService {
             // 1. RECHARGER la benne depuis la base de données
             Ressource benne = ressourceRepo.findById(tournee.getBenne().getId())
                     .orElseThrow(() -> new ResourceNotFoundException("Benne non trouvée"));
-
+            
             // 2. Maintenant l'objet est ATTACHÉ à Hibernate
             try {
                 benne.ajouterCharge(req.getQuantiteCollecteeKg());
@@ -279,18 +278,18 @@ public class TourneeServiceImpl implements TourneeService {
                 benne.setEstPleine(true);
                 benne.setTauxRemplissage(100.0);
             }
-
+            
             // 3. Sauvegarde (UPDATE au lieu de INSERT)
             ressourceRepo.save(benne);}
         tourneeRepo.save(tournee);
-
+        
         // ✅ Mettre à jour les statistiques de la collecte
-        // ✅ Mettre à jour les statistiques de la collecte
+     // ✅ Mettre à jour les statistiques de la collecte
         if (tournee.getCollecte() != null) {
             System.out.println("🔄 Appel de updateCollecteStats pour la collecte: " + tournee.getCollecte().getId());
             collecteService.updateCollecteStats(tournee.getCollecte().getId());
         }
-
+        
         checkAndCloseVerger(tournee.getVerger().getId());
 
         return toResponse(tournee);

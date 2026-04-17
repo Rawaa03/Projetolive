@@ -18,7 +18,6 @@ public class TravailleurService {
 
     public Utilisateur creerTravailleur(Utilisateur travailleur) {
         System.out.println("👷 Création d'un travailleur: " + travailleur.getEmail());
-
         if (travailleur.getRole() != Role.TRAVAILLEUR) {
             throw new RuntimeException("Le rôle doit être EQUIPE_RECOLTE");
         }
@@ -52,7 +51,6 @@ public class TravailleurService {
     public Utilisateur trouverTravailleurParId(String id) {
         Utilisateur utilisateur = utilisateurRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Travailleur non trouvé"));
-
         if (utilisateur.getRole() != Role.TRAVAILLEUR) {
             throw new RuntimeException("Cet utilisateur n'est pas un travailleur");
         }

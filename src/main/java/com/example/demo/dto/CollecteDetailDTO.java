@@ -15,12 +15,10 @@ public class CollecteDetailDTO {
     private Verger verger;
     private Integer nbreTournees;
     private Double quantiteTotaleKg;
-
     // Helper method to compute totals
     public Integer getNbreTournees() {
         return tournees != null ? tournees.size() : 0;
     }
-
     public Double getQuantiteTotaleKg() {
         if (tournees == null) return 0.0;
         return tournees.stream()

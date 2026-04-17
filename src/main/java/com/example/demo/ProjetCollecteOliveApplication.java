@@ -108,7 +108,7 @@ public class ProjetCollecteOliveApplication {
                 equipeRecolte.setPrenom("Karim");
                 equipeRecolte.setNom("Said");
                 equipeRecolte.setTelephone("+216 77 777 777");
-                equipeRecolte.setRole(Role.EQUIPE_RECOLTE);
+                equipeRecolte.setRole(Role.TRAVAILLEUR);
                 equipeRecolte.setAdresse("Sousse, Tunisie");
                 equipeRecolte.setEstActif(true);
                 equipeRecolte.setDateCreation(new Date());
@@ -121,7 +121,7 @@ public class ProjetCollecteOliveApplication {
                 System.out.println("✅ Utilisateur EQUIPE_RECOLTE créé avec succès !");
                 System.out.println("   📧 Email: equipe@recolte.com");
                 System.out.println("   🔑 Mot de passe: equipe123");
-                System.out.println("   👤 Rôle: EQUIPE_RECOLTE");
+                System.out.println("   👤 Rôle: TRAVAILLEUR");
             }
 
             System.out.println("\n🎉 Initialisation des données terminée !");

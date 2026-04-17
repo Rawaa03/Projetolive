@@ -18,11 +18,31 @@ public interface TourneeRepository extends MongoRepository<Tournee, String> {
     Optional<Tournee> findByCode(String code);
 
     List<Tournee> findByStatut(StatutTournee statut);
-
+    @Query("{ 'verger': { $oid: ?0 }, 'travailleurs': { $in: [ObjectId(?1)] }, 'dateDebut': { $gte: ?2, $lte: ?3 } }")
+    List<Tournee> findByVergerIdAndTravailleurIdAndDateDebutBetween(
+        String vergerId, 
+        String travailleurId, 
+        Date debut, 
+        Date fin
+    );
     List<Tournee> findByVerger(Verger verger);
-
+ // Dans TourneeRepository.java
+    List<Tournee> findByDateDebutBetween(Date debut, Date fin);
+    List<Tournee> findByVergerIdAndDateDebutBetween(String vergerId, Date debut, Date fin);
+ // ✅ CORRECTION - Utiliser @Query
     List<Tournee> findByVergerId(String vergerId);
 
+    @Query("{ 'travailleurs': { $in: [ObjectId(?0)] }, 'dateDebut': { $gte: ?1, $lte: ?2 } }")
+    List<Tournee> findByTravailleurIdAndDateDebutBetween(String travailleurId, Date debut, Date fin);
+    // TourneeRepository.java
+ // Pour les tournées d'un travailleur
+ // Assure-toi que cette méthode existe et est correcte
+    @Query("{ 'travailleurs': { $in: [ObjectId(?0)] }, 'dateDebut': { $gte: ?1, $lte: ?2 } }")
+    List<Tournee> findByTravailleursIdAndDateDebutBetween(String travailleurId, Date debut, Date fin);
+ // Pour les tournées des vergers d'un agriculteur
+  
+    @Query("{ 'verger': { $in: ?0 }, 'dateDebut': { $gte: ?1, $lte: ?2 } }")
+    List<Tournee> findByVergerIdInAndDateDebutBetween(List<ObjectId> vergerIds, Date debut, Date fin);
     List<Tournee> findTermineesByVergerId(String vergerId);
 
     @Query("{ 'travailleurs.$id': { $oid: ?0 } }")
@@ -39,11 +59,14 @@ public interface TourneeRepository extends MongoRepository<Tournee, String> {
 
     boolean existsByCode(String code);
 
+    // ✅ CRITICAL MISSING METHOD - Find all tournées of a collecte
     List<Tournee> findByCollecteId(String collecteId);
 
+    // ✅ Optional: Find first tournée of a collecte (useful for getting verger)
     @Query(value = "{ 'collecte.$id': { $oid: ?0 } }", fields = "{ 'verger': 1 }")
     Tournee findFirstByCollecteId(String collecteId);
 
+    // ✅ Optional: Count tournées by collecte
     @Query(value = "{ 'collecte.$id': { $oid: ?0 } }", count = true)
     long countByCollecteId(String collecteId);
 

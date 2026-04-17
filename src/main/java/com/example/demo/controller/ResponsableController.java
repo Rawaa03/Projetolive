@@ -79,9 +79,9 @@ public class ResponsableController {
     public ResponseEntity<List<Utilisateur>> getAllTravailleurs() {
         return ResponseEntity.ok(travailleurService.listerTravailleurs());
     }
-
-
-
+    
+    
+    
     @GetMapping("/travailleurs/specialite/{specialite}")
     public ResponseEntity<List<Utilisateur>> getTravailleursBySpecialite(@PathVariable String specialite) {
         return ResponseEntity.ok(travailleurService.listerTravailleursParSpecialite(specialite));
@@ -110,6 +110,6 @@ public class ResponsableController {
     }
 
     // ==================== MÉTHODES UTILITAIRES TRAVAILLEURS ====================
-
-
+    
+    
 }

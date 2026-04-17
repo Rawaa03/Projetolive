@@ -46,6 +46,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/utilisateurs").hasRole("ADMIN")
                         .requestMatchers("/api/auth/utilisateurs/**").hasRole("ADMIN")
                         .requestMatchers("/api/tableau-de-bord/**").hasRole("ADMIN")
+                        .requestMatchers("/api/collectes/**").permitAll()  // TEMPORAIRE pour tester
 
                         // ADMIN and RESPONSABLE endpoints
                         .requestMatchers("/api/responsable/**").hasAnyRole("ADMIN", "RESPONSABLE")

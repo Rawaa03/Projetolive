@@ -21,7 +21,7 @@ public class AdminController {
     private AuthService authService;
 
     // ========== CRUD UTILISATEURS ==========
-
+    
     @PostMapping("/utilisateurs")
     public ResponseEntity<Map<String, Object>> creerUtilisateurParAdmin(@RequestBody Utilisateur utilisateur) {
         Map<String, Object> response = authService.creerUtilisateurParAdmin(utilisateur);
@@ -54,7 +54,7 @@ public class AdminController {
     }
 
     // ========== GESTION DES COMPTES ==========
-
+    
     @PostMapping("/desactiver-compte/{id}")
     public ResponseEntity<Map<String, Object>> desactiverCompte(@PathVariable String id) {
         Utilisateur desactive = authService.desactiverCompte(id);
@@ -66,7 +66,7 @@ public class AdminController {
 
     @PostMapping("/activer-compte/{id}")
     public ResponseEntity<Map<String, Object>> activerCompte(
-            @PathVariable String id,
+            @PathVariable String id, 
             @RequestBody Map<String, String> request) {
         String motDePasse = request.get("nouveauMotDePasse");
         Utilisateur active = authService.activerCompte(id, motDePasse);
@@ -83,14 +83,14 @@ public class AdminController {
             @RequestBody Map<String, String> request) {
         String nouveauMotDePasse = request.get("nouveauMotDePasse");
         authService.changerMotDePasseAdmin(id, nouveauMotDePasse);
-
+        
         Map<String, String> response = new HashMap<>();
         response.put("message", "Mot de passe changé avec succès");
         return ResponseEntity.ok(response);
     }
     @PostMapping("/activer-agriculteur/{id}")
     public ResponseEntity<Map<String, Object>> activerAgriculteur(
-            @PathVariable String id,
+            @PathVariable String id, 
             @RequestBody Map<String, String> request) {
         String motDePasse = request.get("nouveauMotDePasse");
         Utilisateur active = authService.activerAgriculteur(id, motDePasse);
@@ -102,7 +102,7 @@ public class AdminController {
 
     @PostMapping("/activer-travailleur/{id}")
     public ResponseEntity<Map<String, Object>> activerTravailleur(
-            @PathVariable String id,
+            @PathVariable String id, 
             @RequestBody Map<String, String> request) {
         String motDePasse = request.get("nouveauMotDePasse");
         Utilisateur active = authService.activerTravailleur(id, motDePasse);
@@ -113,7 +113,7 @@ public class AdminController {
     }
 
     // ========== LISTES DES UTILISATEURS EN ATTENTE ==========
-
+    
     @GetMapping("/agriculteurs/en-attente")
     public ResponseEntity<List<Utilisateur>> getAgriculteursEnAttente() {
         return ResponseEntity.ok(authService.getAgriculteursEnAttente());
@@ -130,7 +130,7 @@ public class AdminController {
     }
 
     // ========== STATISTIQUES ==========
-
+    
     @GetMapping("/stats/attente")
     public ResponseEntity<Map<String, Long>> getStatsAttente() {
         Map<String, Long> stats = new HashMap<>();

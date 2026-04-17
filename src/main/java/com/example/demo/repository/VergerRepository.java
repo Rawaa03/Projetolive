@@ -16,10 +16,11 @@ public interface VergerRepository extends MongoRepository<Verger, String> {
     List<Verger> findByStatut(StatutVerger statut);
 
     List<Verger> findByAgriculteur(Utilisateur agriculteur);
-
+    List<Verger> findByAgriculteurId(String agriculteurId);
     @Query("{ 'agriculteur' : ?0, 'estSupprimer' : false }")
     List<Verger> findActiveByAgriculteurId(ObjectId agriculteurId);
-
+    @Query("{ 'agriculteur': ?0 }")
+    List<Verger> findByAgriculteurRef(String agriculteurId);
     @Query(value = "{ 'agriculteur' : ?0 }", exists = true)
     boolean existsByAgriculteurId(ObjectId agriculteurId);
 }

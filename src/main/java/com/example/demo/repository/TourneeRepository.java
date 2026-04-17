@@ -4,6 +4,8 @@ package com.example.demo.repository;
 import com.example.demo.model.StatutTournee;
 import com.example.demo.model.Tournee;
 import com.example.demo.model.Verger;
+
+import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -18,11 +20,31 @@ public interface TourneeRepository extends MongoRepository<Tournee, String> {
     Optional<Tournee> findByCode(String code);
 
     List<Tournee> findByStatut(StatutTournee statut);
-
+    @Query("{ 'verger': { $oid: ?0 }, 'travailleurs': { $in: [ObjectId(?1)] }, 'dateDebut': { $gte: ?2, $lte: ?3 } }")
+    List<Tournee> findByVergerIdAndTravailleurIdAndDateDebutBetween(
+        String vergerId, 
+        String travailleurId, 
+        Date debut, 
+        Date fin
+    );
     List<Tournee> findByVerger(Verger verger);
-
+ // Dans TourneeRepository.java
+    List<Tournee> findByDateDebutBetween(Date debut, Date fin);
+    List<Tournee> findByVergerIdAndDateDebutBetween(String vergerId, Date debut, Date fin);
+ // ✅ CORRECTION - Utiliser @Query
     List<Tournee> findByVergerId(String vergerId);
 
+    @Query("{ 'travailleurs': { $in: [ObjectId(?0)] }, 'dateDebut': { $gte: ?1, $lte: ?2 } }")
+    List<Tournee> findByTravailleurIdAndDateDebutBetween(String travailleurId, Date debut, Date fin);
+    // TourneeRepository.java
+ // Pour les tournées d'un travailleur
+ // Assure-toi que cette méthode existe et est correcte
+    @Query("{ 'travailleurs': { $in: [ObjectId(?0)] }, 'dateDebut': { $gte: ?1, $lte: ?2 } }")
+    List<Tournee> findByTravailleursIdAndDateDebutBetween(String travailleurId, Date debut, Date fin);
+ // Pour les tournées des vergers d'un agriculteur
+  
+    @Query("{ 'verger': { $in: ?0 }, 'dateDebut': { $gte: ?1, $lte: ?2 } }")
+    List<Tournee> findByVergerIdInAndDateDebutBetween(List<ObjectId> vergerIds, Date debut, Date fin);
     List<Tournee> findTermineesByVergerId(String vergerId);
 
     @Query("{ 'travailleurs.$id': { $oid: ?0 } }")

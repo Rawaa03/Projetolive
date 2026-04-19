@@ -46,8 +46,9 @@ public class AlerteServiceImpl implements AlerteService {
         // Compute urgency from the combination of alert type and current phase
         NiveauUrgence urgence = computeUrgence(req.getType(), phase);
 
-        // GeoJSON requires [longitude, latitude] order
-        GeoJsonPoint location = new GeoJsonPoint(req.getLongitude(), req.getLatitude());
+        // Use the verger's geolocation instead of the request's location
+        GeoJsonPoint location = verger.getLocation();
+        Geolocalisation geolocalisation = verger.getGeolocalisation();
 
         AlerteTerrain alerte = AlerteTerrain.builder()
                 .agriculteur(agriculteur)
@@ -55,11 +56,7 @@ public class AlerteServiceImpl implements AlerteService {
                 .type(req.getType())
                 .description(req.getDescription())
                 .location(location)
-                .geolocalisation(Geolocalisation.builder()
-                        .latitude(req.getLatitude())
-                        .longitude(req.getLongitude())
-                        .adresseIndicative(req.getAdresseIndicative())
-                        .build())
+                .geolocalisation(geolocalisation)
                 .phase(phase)
                 .niveauUrgence(urgence)
                 .statut(StatutAlerte.EN_ATTENTE)
@@ -71,10 +68,13 @@ public class AlerteServiceImpl implements AlerteService {
 
         // Optional: if 3+ alerts within 500m, urgency escalates to CRITIQUE
         // This is informational — the stored urgency stays as computed above
-        long nearbyCount = alerteRepo.countNearbyAlerts(req.getLongitude(), req.getLatitude());
-        if (nearbyCount >= 3 && saved.getNiveauUrgence() != NiveauUrgence.CRITIQUE) {
-            saved.setNiveauUrgence(NiveauUrgence.CRITIQUE);
-            saved = alerteRepo.save(saved);
+        // Use the verger's location for proximity check
+        if (location != null) {
+            long nearbyCount = alerteRepo.countNearbyAlerts(location.getX(), location.getY());
+            if (nearbyCount >= 3 && saved.getNiveauUrgence() != NiveauUrgence.CRITIQUE) {
+                saved.setNiveauUrgence(NiveauUrgence.CRITIQUE);
+                saved = alerteRepo.save(saved);
+            }
         }
 
         return toResponse(saved);

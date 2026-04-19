@@ -50,7 +50,7 @@ public class SecurityConfig {
 
                         // ADMIN and RESPONSABLE endpoints
                         .requestMatchers("/api/responsable/**").hasAnyRole("ADMIN", "RESPONSABLE")
-                        .requestMatchers("/api/vergers/**").hasAnyRole("ADMIN", "RESPONSABLE")
+                        .requestMatchers("/api/vergers/**").hasAnyRole("ADMIN", "RESPONSABLE", "AGRICULTEUR")
 
                         // ADMIN, RESPONSABLE, and AGRICULTEUR endpoints
                         .requestMatchers("/api/alertes/**").hasAnyRole("ADMIN", "RESPONSABLE", "AGRICULTEUR")

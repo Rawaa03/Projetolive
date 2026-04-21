@@ -1,7 +1,8 @@
 package com.example.demo.controller;
 
 import com.example.demo.model.Utilisateur;
-import com.example.demo.service.AuthService;
+import com.example.demo.service.impl.AuthServiceImpl;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -18,38 +19,38 @@ import java.util.Map;
 public class AdminController {
 
     @Autowired
-    private AuthService authService;
+    private AuthServiceImpl authServiceImpl;
 
     // ========== CRUD UTILISATEURS ==========
     
     @PostMapping("/utilisateurs")
     public ResponseEntity<Map<String, Object>> creerUtilisateurParAdmin(@RequestBody Utilisateur utilisateur) {
-        Map<String, Object> response = authService.creerUtilisateurParAdmin(utilisateur);
+        Map<String, Object> response = authServiceImpl.creerUtilisateurParAdmin(utilisateur);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/utilisateurs")
     public ResponseEntity<List<Utilisateur>> listerUtilisateurs() {
-        List<Utilisateur> utilisateurs = authService.listerUtilisateurs();
+        List<Utilisateur> utilisateurs = authServiceImpl.listerUtilisateurs();
         return ResponseEntity.ok(utilisateurs);
     }
 
     @GetMapping("/utilisateurs/{id}")
     public ResponseEntity<Utilisateur> trouverUtilisateurParId(@PathVariable String id) {
-        Utilisateur utilisateur = authService.trouverUtilisateurParId(id)
+        Utilisateur utilisateur = authServiceImpl.trouverUtilisateurParId(id)
                 .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé avec l'id: " + id));
         return ResponseEntity.ok(utilisateur);
     }
 
     @PutMapping("/utilisateurs/{id}")
     public ResponseEntity<Utilisateur> mettreAJourUtilisateur(@PathVariable String id, @RequestBody Utilisateur utilisateur) {
-        Utilisateur utilisateurMisAJour = authService.mettreAJourUtilisateur(id, utilisateur);
+        Utilisateur utilisateurMisAJour = authServiceImpl.mettreAJourUtilisateur(id, utilisateur);
         return ResponseEntity.ok(utilisateurMisAJour);
     }
 
     @DeleteMapping("/utilisateurs/{id}")
     public ResponseEntity<Void> supprimerUtilisateur(@PathVariable String id) {
-        authService.supprimerUtilisateur(id);
+        authServiceImpl.supprimerUtilisateur(id);
         return ResponseEntity.noContent().build();
     }
 
@@ -57,7 +58,7 @@ public class AdminController {
     
     @PostMapping("/desactiver-compte/{id}")
     public ResponseEntity<Map<String, Object>> desactiverCompte(@PathVariable String id) {
-        Utilisateur desactive = authService.desactiverCompte(id);
+        Utilisateur desactive = authServiceImpl.desactiverCompte(id);
         Map<String, Object> response = new HashMap<>();
         response.put("message", "Compte désactivé avec succès");
         response.put("utilisateur", desactive);
@@ -69,7 +70,7 @@ public class AdminController {
             @PathVariable String id, 
             @RequestBody Map<String, String> request) {
         String motDePasse = request.get("nouveauMotDePasse");
-        Utilisateur active = authService.activerCompte(id, motDePasse);
+        Utilisateur active = authServiceImpl.activerCompte(id, motDePasse);
         Map<String, Object> response = new HashMap<>();
         response.put("message", "Compte activé avec succès");
         response.put("utilisateur", active);
@@ -82,7 +83,7 @@ public class AdminController {
             @PathVariable String id,
             @RequestBody Map<String, String> request) {
         String nouveauMotDePasse = request.get("nouveauMotDePasse");
-        authService.changerMotDePasseAdmin(id, nouveauMotDePasse);
+        authServiceImpl.changerMotDePasseAdmin(id, nouveauMotDePasse);
         
         Map<String, String> response = new HashMap<>();
         response.put("message", "Mot de passe changé avec succès");
@@ -93,7 +94,7 @@ public class AdminController {
             @PathVariable String id, 
             @RequestBody Map<String, String> request) {
         String motDePasse = request.get("nouveauMotDePasse");
-        Utilisateur active = authService.activerAgriculteur(id, motDePasse);
+        Utilisateur active = authServiceImpl.activerAgriculteur(id, motDePasse);
         Map<String, Object> response = new HashMap<>();
         response.put("message", "Compte agriculteur activé avec succès");
         response.put("agriculteur", active);
@@ -105,7 +106,7 @@ public class AdminController {
             @PathVariable String id, 
             @RequestBody Map<String, String> request) {
         String motDePasse = request.get("nouveauMotDePasse");
-        Utilisateur active = authService.activerTravailleur(id, motDePasse);
+        Utilisateur active = authServiceImpl.activerTravailleur(id, motDePasse);
         Map<String, Object> response = new HashMap<>();
         response.put("message", "Compte travailleur activé avec succès");
         response.put("travailleur", active);
@@ -116,17 +117,17 @@ public class AdminController {
     
     @GetMapping("/agriculteurs/en-attente")
     public ResponseEntity<List<Utilisateur>> getAgriculteursEnAttente() {
-        return ResponseEntity.ok(authService.getAgriculteursEnAttente());
+        return ResponseEntity.ok(authServiceImpl.getAgriculteursEnAttente());
     }
 
     @GetMapping("/travailleurs/en-attente")
     public ResponseEntity<List<Utilisateur>> getTravailleursEnAttente() {
-        return ResponseEntity.ok(authService.getTravailleursEnAttente());
+        return ResponseEntity.ok(authServiceImpl.getTravailleursEnAttente());
     }
 
     @GetMapping("/utilisateurs/en-attente")
     public ResponseEntity<List<Utilisateur>> getTousUtilisateursEnAttente() {
-        return ResponseEntity.ok(authService.getTousUtilisateursEnAttente());
+        return ResponseEntity.ok(authServiceImpl.getTousUtilisateursEnAttente());
     }
 
     // ========== STATISTIQUES ==========
@@ -134,8 +135,8 @@ public class AdminController {
     @GetMapping("/stats/attente")
     public ResponseEntity<Map<String, Long>> getStatsAttente() {
         Map<String, Long> stats = new HashMap<>();
-        stats.put("agriculteursEnAttente", authService.compterAgriculteursEnAttente());
-        stats.put("travailleursEnAttente", authService.compterTravailleursEnAttente());
+        stats.put("agriculteursEnAttente", authServiceImpl.compterAgriculteursEnAttente());
+        stats.put("travailleursEnAttente", authServiceImpl.compterTravailleursEnAttente());
         return ResponseEntity.ok(stats);
     }
 }

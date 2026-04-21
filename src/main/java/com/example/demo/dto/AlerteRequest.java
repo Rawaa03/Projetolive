@@ -19,11 +19,9 @@ public class AlerteRequest {
     @NotBlank
     private String description;
 
-    @NotNull
+    // Note: Location is now taken from the selected Verger
+    // These fields are kept for backward compatibility but are not used
     private Double latitude;
-
-    @NotNull
     private Double longitude;
-
     private String adresseIndicative;
 }

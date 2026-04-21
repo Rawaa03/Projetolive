@@ -1,6 +1,5 @@
 package com.example.demo.config;
 
-import com.example.demo.service.CustomUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,6 +14,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import com.example.demo.service.impl.CustomUserDetailsService;
 
 import java.util.Arrays;
 
@@ -50,8 +51,7 @@ public class SecurityConfig {
 
                         // ADMIN and RESPONSABLE endpoints
                         .requestMatchers("/api/responsable/**").hasAnyRole("ADMIN", "RESPONSABLE")
-                        .requestMatchers("/api/vergers/**").hasAnyRole("ADMIN", "RESPONSABLE")
-
+                        .requestMatchers("/api/vergers/**").hasAnyRole("ADMIN", "RESPONSABLE", "AGRICULTEUR")
                         // ADMIN, RESPONSABLE, and AGRICULTEUR endpoints
                         .requestMatchers("/api/alertes/**").hasAnyRole("ADMIN", "RESPONSABLE", "AGRICULTEUR")
 

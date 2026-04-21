@@ -20,54 +20,54 @@ import java.util.List;
 @Document(collection = "tournees")
 public class Tournee {
 
-    // 200 trees × ~5 kg/tree avg yield = 1 000 kg → fills one standard 1-tonne benne
-    public static final int NB_ARBRES_PAR_TOURNEE = 200;
+	// 200 trees × ~5 kg/tree avg yield = 1 000 kg → fills one standard 1-tonne
+	// benne
+	public static final int NB_ARBRES_PAR_TOURNEE = 200;
 
-    @Id
-    private String id;
+	@Id
+	private String id;
 
-    private String code;            // e.g. T-20251012-001
+	private String code; // e.g. T-20251012-001
 
-    private StatutTournee statut;   // PLANIFIEE | EN_COURS | TERMINEE | ANNULEE
+	private StatutTournee statut; // PLANIFIEE | EN_COURS | TERMINEE | ANNULEE
 
-    @DocumentReference(lazy = true)
-    private Verger verger;
+	@DocumentReference(lazy = true)
+	private Verger verger;
 
-    @DocumentReference(lazy = true)
-    private Ressource benne;
+	@DocumentReference(lazy = true)
+	private Ressource benne;
 
-    @DocumentReference(lazy = true)
-    private Ressource tracteur;
+	@DocumentReference(lazy = true)
+	private Ressource tracteur;
 
-    @DocumentReference(lazy = true)
-    @Builder.Default
-    private List<Utilisateur> travailleurs = new ArrayList<>();
+	@DocumentReference(lazy = true)
+	@Builder.Default
+	private List<Utilisateur> travailleurs = new ArrayList<>();
 
-    /**
-     * Planned start date (set at creation, updated when demarrer() is called).
-     * Used for availability overlap checks.
-     */
-    private Date dateDebut;
+	/**
+	 * Planned start date (set at creation, updated when demarrer() is called). Used
+	 * for availability overlap checks.
+	 */
+	private Date dateDebut;
 
-    /**
-     * Planned / actual end date.
-     * Set at creation as the estimated end; overwritten with the real time on terminer().
-     * Used for availability overlap checks.
-     */
-    private Date dateFin;
+	/**
+	 * Planned / actual end date. Set at creation as the estimated end; overwritten
+	 * with the real time on terminer(). Used for availability overlap checks.
+	 */
+	private Date dateFin;
 
-    @Builder.Default
-    private Integer nbreArbre = NB_ARBRES_PAR_TOURNEE;
+	@Builder.Default
+	private Integer nbreArbre = NB_ARBRES_PAR_TOURNEE;
 
-    private Double distanceTotale;      // km
-    private Integer tempsTotal;         // minutes (actual dateDebut → actual dateFin)
+	private Double distanceTotale; // km
+	private Integer tempsTotal; // minutes (actual dateDebut → actual dateFin)
 
-    private Double quantiteCollecteeKg;
-    private Boolean collecteFinalisee;
+	private Double quantiteCollecteeKg;
+	private Boolean collecteFinalisee;
 
-    private String observations;
-    @DocumentReference(lazy = true)
-    private Collecte collecte;
-    @CreatedDate
-    private Date dateCreation;
+	private String observations;
+	@DocumentReference(lazy = true)
+	private Collecte collecte;
+	@CreatedDate
+	private Date dateCreation;
 }

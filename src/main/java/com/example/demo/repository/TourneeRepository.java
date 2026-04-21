@@ -1,4 +1,3 @@
-
 package com.example.demo.repository;
 
 import com.example.demo.model.StatutTournee;
@@ -17,8 +16,50 @@ import java.util.Optional;
 public interface TourneeRepository extends MongoRepository<Tournee, String> {
 
     Optional<Tournee> findByCode(String code);
-
     List<Tournee> findByStatut(StatutTournee statut);
+    List<Tournee> findByVergerId(String vergerId);
+    List<Tournee> findByCollecteId(String collecteId);
+    
+    @Query("{ 'statut': { $in: ['PLANIFIEE', 'EN_COURS'] } }")
+    List<Tournee> findActive();
+    
+    boolean existsByCode(String code);
+    
+    @Query("{ 'vergerId': ?0, 'statut': 'TERMINEE' }")
+    List<Tournee> findTermineesByVergerId(String vergerId);
+
+    // ✅ FIXED CONFLICT QUERY FOR BENNE
+    @Query("{ " +
+            "  'benne.id': ?0, " +
+            "  'statut': { $in: ['PLANIFIEE', 'EN_COURS'] }, " +
+            "  '_id': { $ne: ?3 }, " +
+            "  $or: [ " +
+            "    { $and: [ { 'dateDebut': { $lt: ?2 } }, { 'dateFin': { $gt: ?1 } } ] }, " +
+            "    { $and: [ { 'dateDebut': { $gte: ?1 } }, { 'dateDebut': { $lt: ?2 } } ] }, " +
+            "    { $and: [ { 'dateFin': { $gt: ?1 } }, { 'dateFin': { $lte: ?2 } } ] } " +
+            "  ] " +
+            "}")
+    List<Tournee> findConflictsByBenne(String benneId, Date debut, Date fin, String excludeId);
+
+    // ✅ FIXED CONFLICT QUERY FOR TRACTEUR
+    @Query("{ " +
+            "  'tracteur.id': ?0, " +
+            "  'statut': { $in: ['PLANIFIEE', 'EN_COURS'] }, " +
+            "  '_id': { $ne: ?3 }, " +
+            "  $or: [ " +
+            "    { $and: [ { 'dateDebut': { $lt: ?2 } }, { 'dateFin': { $gt: ?1 } } ] }, " +
+            "    { $and: [ { 'dateDebut': { $gte: ?1 } }, { 'dateDebut': { $lt: ?2 } } ] }, " +
+            "    { $and: [ { 'dateFin': { $gt: ?1 } }, { 'dateFin': { $lte: ?2 } } ] } " +
+            "  ] " +
+            "}")
+    
+    
+    List<Tournee> findConflictsByTracteur(String tracteurId, Date debut, Date fin, String excludeId);
+    List<Tournee> findByDateDebutBetween(Date debut, Date fin);
+    @Query("{ 'travailleurs': { $in: [ObjectId(?0)] }, 'dateDebut': { $gte: ?1, $lte: ?2 } }")
+    List<Tournee> findByTravailleursIdAndDateDebutBetween(String travailleurId, Date debut, Date fin);
+     @Query("{ 'verger': { $in: ?0 }, 'dateDebut': { $gte: ?1, $lte: ?2 } }")
+    List<Tournee> findByVergerIdInAndDateDebutBetween(List<ObjectId> vergerIds, Date debut, Date fin);    List<Tournee> findByVergerIdAndDateDebutBetween(String vergerId, Date debut, Date fin);
     @Query("{ 'verger': { $oid: ?0 }, 'travailleurs': { $in: [ObjectId(?1)] }, 'dateDebut': { $gte: ?2, $lte: ?3 } }")
     List<Tournee> findByVergerIdAndTravailleurIdAndDateDebutBetween(
         String vergerId, 
@@ -26,91 +67,19 @@ public interface TourneeRepository extends MongoRepository<Tournee, String> {
         Date debut, 
         Date fin
     );
-    List<Tournee> findByVerger(Verger verger);
- // Dans TourneeRepository.java
-    List<Tournee> findByDateDebutBetween(Date debut, Date fin);
-    List<Tournee> findByVergerIdAndDateDebutBetween(String vergerId, Date debut, Date fin);
- // ✅ CORRECTION - Utiliser @Query
-    List<Tournee> findByVergerId(String vergerId);
-
     @Query("{ 'travailleurs': { $in: [ObjectId(?0)] }, 'dateDebut': { $gte: ?1, $lte: ?2 } }")
     List<Tournee> findByTravailleurIdAndDateDebutBetween(String travailleurId, Date debut, Date fin);
-    // TourneeRepository.java
- // Pour les tournées d'un travailleur
- // Assure-toi que cette méthode existe et est correcte
-    @Query("{ 'travailleurs': { $in: [ObjectId(?0)] }, 'dateDebut': { $gte: ?1, $lte: ?2 } }")
-    List<Tournee> findByTravailleursIdAndDateDebutBetween(String travailleurId, Date debut, Date fin);
- // Pour les tournées des vergers d'un agriculteur
-  
-    @Query("{ 'verger': { $in: ?0 }, 'dateDebut': { $gte: ?1, $lte: ?2 } }")
-    List<Tournee> findByVergerIdInAndDateDebutBetween(List<ObjectId> vergerIds, Date debut, Date fin);
-    List<Tournee> findTermineesByVergerId(String vergerId);
-
-    @Query("{ 'travailleurs.$id': { $oid: ?0 } }")
-    List<Tournee> findByTravailleurId(String travailleurId);
-
-    @Query("{ 'benne.$id': { $oid: ?0 } }")
-    List<Tournee> findByBenneId(String benneId);
-
-    @Query("{ 'tracteur.$id': { $oid: ?0 } }")
-    List<Tournee> findByTracteurId(String tracteurId);
-
-    @Query("{ 'statut': { $in: ['PLANIFIEE', 'EN_COURS'] } }")
-    List<Tournee> findActive();
-
-    boolean existsByCode(String code);
-
-    // ✅ CRITICAL MISSING METHOD - Find all tournées of a collecte
-    List<Tournee> findByCollecteId(String collecteId);
-
-    // ✅ Optional: Find first tournée of a collecte (useful for getting verger)
-    @Query(value = "{ 'collecte.$id': { $oid: ?0 } }", fields = "{ 'verger': 1 }")
-    Tournee findFirstByCollecteId(String collecteId);
-
-    // ✅ Optional: Count tournées by collecte
-    @Query(value = "{ 'collecte.$id': { $oid: ?0 } }", count = true)
-    long countByCollecteId(String collecteId);
-
-    // ── Availability overlap queries ───────────────────────────────
-    // A conflict exists when an active tournée overlaps [dateDebut, dateFin]:
-    //   existing.dateDebut < requested.dateFin
-    //   AND existing.dateFin > requested.dateDebut
-    // We exclude the tournée being edited (excludeId) so update works correctly.
-
-    /**
-     * Active tournées using this benne that overlap the given window.
-     * excludeId: pass the current tournée ID when updating (pass a dummy value like "NONE" when creating).
-     */
+   
+    // ✅ FIXED CONFLICT QUERY FOR TRAVAILLEUR
     @Query("{ " +
-            "  'benne.$id': { $oid: ?0 }, " +
+            "  'travailleurs': { $in: [ObjectId(?0)] }, " +
             "  'statut': { $in: ['PLANIFIEE', 'EN_COURS'] }, " +
-            "  '_id': { $ne: { $oid: ?3 } }, " +
-            "  'dateDebut': { $lt: ?2 }, " +
-            "  'dateFin':   { $gt: ?1 } " +
-            "}")
-    List<Tournee> findConflictsByBenne(String benneId, Date debut, Date fin, String excludeId);
-
-    /**
-     * Active tournées using this tracteur that overlap the given window.
-     */
-    @Query("{ " +
-            "  'tracteur.$id': { $oid: ?0 }, " +
-            "  'statut': { $in: ['PLANIFIEE', 'EN_COURS'] }, " +
-            "  '_id': { $ne: { $oid: ?3 } }, " +
-            "  'dateDebut': { $lt: ?2 }, " +
-            "  'dateFin':   { $gt: ?1 } " +
-            "}")
-    List<Tournee> findConflictsByTracteur(String tracteurId, Date debut, Date fin, String excludeId);
-
-    /**
-     * Active tournées where this travailleur is assigned that overlap the given window.
-     */
-    @Query("{ " +
-            "  'travailleurs.$id': { $oid: ?0 }, " +
-            "  'statut': { $in: ['PLANIFIEE', 'EN_COURS'] }, " +
-            "  '_id': { $ne: { $oid: ?3 } }, " +
-            "  'dateDebut': { $lt: ?2 }, " +
-            "  'dateFin':   { $gt: ?1 } " +
+            "  '_id': { $ne: ?3 }, " +
+            "  $or: [ " +
+            "    { $and: [ { 'dateDebut': { $lt: ?2 } }, { 'dateFin': { $gt: ?1 } } ] }, " +
+            "    { $and: [ { 'dateDebut': { $gte: ?1 } }, { 'dateDebut': { $lt: ?2 } } ] }, " +
+            "    { $and: [ { 'dateFin': { $gt: ?1 } }, { 'dateFin': { $lte: ?2 } } ] } " +
+            "  ] " +
             "}")
     List<Tournee> findConflictsByTravailleur(String travailleurId, Date debut, Date fin, String excludeId);
 }

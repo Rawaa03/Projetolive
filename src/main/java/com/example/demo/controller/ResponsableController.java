@@ -1,8 +1,9 @@
 package com.example.demo.controller;
 
 import com.example.demo.model.Utilisateur;
-import com.example.demo.service.AgriculteurService;
-import com.example.demo.service.TravailleurService;
+import com.example.demo.service.impl.AgriculteurServiceImpl;
+import com.example.demo.service.impl.TravailleurServiceImpl;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -21,16 +22,16 @@ import java.util.Map;
 public class ResponsableController {
 
     @Autowired
-    private AgriculteurService agriculteurService;
+    private AgriculteurServiceImpl agriculteurServiceImpl;
 
     @Autowired
-    private TravailleurService travailleurService;
+    private TravailleurServiceImpl travailleurServiceImpl;
 
     // ==================== AGRICULTEURS ====================
 
     @PostMapping("/agriculteurs")
     public ResponseEntity<?> createAgriculteur(@RequestBody Utilisateur agriculteur) {
-        Utilisateur created = agriculteurService.creerAgriculteur(agriculteur);
+        Utilisateur created = agriculteurServiceImpl.creerAgriculteur(agriculteur);
         Map<String, Object> response = new HashMap<>();
         response.put("message", "Agriculteur enregistré avec succès. En attente d'activation par l'admin");
         response.put("agriculteur", created);
@@ -39,17 +40,17 @@ public class ResponsableController {
 
     @GetMapping("/agriculteurs")
     public ResponseEntity<List<Utilisateur>> getAllAgriculteurs() {
-        return ResponseEntity.ok(agriculteurService.listerAgriculteurs());
+        return ResponseEntity.ok(agriculteurServiceImpl.listerAgriculteurs());
     }
 
     @GetMapping("/agriculteurs/{id}")
     public ResponseEntity<Utilisateur> getAgriculteurById(@PathVariable String id) {
-        return ResponseEntity.ok(agriculteurService.trouverAgriculteurParId(id));
+        return ResponseEntity.ok(agriculteurServiceImpl.trouverAgriculteurParId(id));
     }
 
     @PutMapping("/agriculteurs/{id}")
     public ResponseEntity<?> updateAgriculteur(@PathVariable String id, @RequestBody Utilisateur agriculteur) {
-        Utilisateur updated = agriculteurService.mettreAJourAgriculteur(id, agriculteur);
+        Utilisateur updated = agriculteurServiceImpl.mettreAJourAgriculteur(id, agriculteur);
         Map<String, Object> response = new HashMap<>();
         response.put("message", "Agriculteur modifié avec succès");
         response.put("agriculteur", updated);
@@ -58,7 +59,7 @@ public class ResponsableController {
 
     @DeleteMapping("/agriculteurs/{id}")
     public ResponseEntity<?> deleteAgriculteur(@PathVariable String id) {
-        agriculteurService.supprimerAgriculteur(id);
+        agriculteurServiceImpl.supprimerAgriculteur(id);
         Map<String, Object> response = new HashMap<>();
         response.put("message", "Agriculteur supprimé avec succès");
         return ResponseEntity.ok(response);
@@ -68,7 +69,7 @@ public class ResponsableController {
 
     @PostMapping("/travailleurs")
     public ResponseEntity<?> createTravailleur(@RequestBody Utilisateur travailleur) {
-        Utilisateur created = travailleurService.creerTravailleur(travailleur);
+        Utilisateur created = travailleurServiceImpl.creerTravailleur(travailleur);
         Map<String, Object> response = new HashMap<>();
         response.put("message", "Travailleur enregistré avec succès. En attente d'activation par l'admin");
         response.put("travailleur", created);
@@ -77,24 +78,24 @@ public class ResponsableController {
 
     @GetMapping("/travailleurs")
     public ResponseEntity<List<Utilisateur>> getAllTravailleurs() {
-        return ResponseEntity.ok(travailleurService.listerTravailleurs());
+        return ResponseEntity.ok(travailleurServiceImpl.listerTravailleurs());
     }
     
     
     
     @GetMapping("/travailleurs/specialite/{specialite}")
     public ResponseEntity<List<Utilisateur>> getTravailleursBySpecialite(@PathVariable String specialite) {
-        return ResponseEntity.ok(travailleurService.listerTravailleursParSpecialite(specialite));
+        return ResponseEntity.ok(travailleurServiceImpl.listerTravailleursParSpecialite(specialite));
     }
 
     @GetMapping("/travailleurs/{id}")
     public ResponseEntity<Utilisateur> getTravailleurById(@PathVariable String id) {
-        return ResponseEntity.ok(travailleurService.trouverTravailleurParId(id));
+        return ResponseEntity.ok(travailleurServiceImpl.trouverTravailleurParId(id));
     }
 
     @PutMapping("/travailleurs/{id}")
     public ResponseEntity<?> updateTravailleur(@PathVariable String id, @RequestBody Utilisateur travailleur) {
-        Utilisateur updated = travailleurService.mettreAJourTravailleur(id, travailleur);
+        Utilisateur updated = travailleurServiceImpl.mettreAJourTravailleur(id, travailleur);
         Map<String, Object> response = new HashMap<>();
         response.put("message", "Travailleur modifié avec succès");
         response.put("travailleur", updated);
@@ -103,7 +104,7 @@ public class ResponsableController {
 
     @DeleteMapping("/travailleurs/{id}")
     public ResponseEntity<?> deleteTravailleur(@PathVariable String id) {
-        travailleurService.supprimerTravailleur(id);
+        travailleurServiceImpl.supprimerTravailleur(id);
         Map<String, Object> response = new HashMap<>();
         response.put("message", "Travailleur supprimé avec succès");
         return ResponseEntity.ok(response);

@@ -2,7 +2,8 @@ package com.example.demo.controller;
 
 import com.example.demo.model.Utilisateur;
 import com.example.demo.repository.UtilisateurRepository;
-import com.example.demo.service.AuthService;
+import com.example.demo.service.impl.AuthServiceImpl;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -17,7 +18,7 @@ import java.util.Map;
 public class AuthController {
 
     @Autowired
-    private AuthService authService;
+    private AuthServiceImpl authServiceImpl;
 
     @Autowired
     private UtilisateurRepository utilisateurRepository;
@@ -26,7 +27,7 @@ public class AuthController {
     public ResponseEntity<Map<String, Object>> login(@RequestBody Map<String, String> request) {
         String email = request.get("email");
         String motDePasse = request.get("motDePasse");
-        Map<String, Object> response = authService.login(email, motDePasse);
+        Map<String, Object> response = authServiceImpl.login(email, motDePasse);
         return ResponseEntity.ok(response);
     }
 
@@ -34,7 +35,7 @@ public class AuthController {
     public ResponseEntity<Map<String, Object>> loginResponsable(@RequestBody Map<String, String> request) {
         String email = request.get("email");
         String motDePasse = request.get("motDePasse");
-        Map<String, Object> response = authService.loginResponsable(email, motDePasse);
+        Map<String, Object> response = authServiceImpl.loginResponsable(email, motDePasse);
         return ResponseEntity.ok(response);
     }
 
@@ -42,7 +43,7 @@ public class AuthController {
     public ResponseEntity<Map<String, Object>> loginAdmin(@RequestBody Map<String, String> request) {
         String email = request.get("email");
         String motDePasse = request.get("motDePasse");
-        Map<String, Object> response = authService.loginAdmin(email, motDePasse);
+        Map<String, Object> response = authServiceImpl.loginAdmin(email, motDePasse);
         return ResponseEntity.ok(response);
     }
 

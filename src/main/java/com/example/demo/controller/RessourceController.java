@@ -2,7 +2,8 @@ package com.example.demo.controller;
 
 import com.example.demo.model.Ressource;
 import com.example.demo.service.BenneService;
-import com.example.demo.service.TracteurService;
+import com.example.demo.service.impl.TracteurServiceImpl;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -18,7 +19,7 @@ import java.util.Map;
 public class RessourceController {
 
     @Autowired private BenneService    benneService;
-    @Autowired private TracteurService tracteurService;
+    @Autowired private TracteurServiceImpl tracteurServiceImpl;
 
     // ══════════════════════════════════════════════════════════════
     // BENNE endpoints
@@ -101,7 +102,7 @@ public class RessourceController {
                 return ResponseEntity.badRequest().body(Map.of("error", "La puissance est requise"));
             if (tracteur.getCarburant() == null || tracteur.getCarburant().trim().isEmpty())
                 return ResponseEntity.badRequest().body(Map.of("error", "Le carburant est requis"));
-            return ResponseEntity.ok(tracteurService.creerTracteur(tracteur));
+            return ResponseEntity.ok(tracteurServiceImpl.creerTracteur(tracteur));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
@@ -109,42 +110,42 @@ public class RessourceController {
 
     @GetMapping("/tracteurs")
     public ResponseEntity<List<Ressource>> getAllTracteurs() {
-        return ResponseEntity.ok(tracteurService.listerTracteurs());
+        return ResponseEntity.ok(tracteurServiceImpl.listerTracteurs());
     }
 
     @GetMapping("/tracteurs/{id}")
     public ResponseEntity<?> getTracteur(@PathVariable String id) {
-        try { return ResponseEntity.ok(tracteurService.getTracteurById(id)); }
+        try { return ResponseEntity.ok(tracteurServiceImpl.getTracteurById(id)); }
         catch (RuntimeException e) { return ResponseEntity.notFound().build(); }
     }
 
     @PutMapping("/tracteurs/{id}")
     public ResponseEntity<?> updateTracteur(@PathVariable String id, @RequestBody Ressource tracteur) {
-        try { return ResponseEntity.ok(tracteurService.mettreAJourTracteur(id, tracteur)); }
+        try { return ResponseEntity.ok(tracteurServiceImpl.mettreAJourTracteur(id, tracteur)); }
         catch (RuntimeException e) { return ResponseEntity.badRequest().body(Map.of("error", e.getMessage())); }
     }
 
     @DeleteMapping("/tracteurs/{id}")
     public ResponseEntity<?> deleteTracteur(@PathVariable String id) {
-        try { tracteurService.supprimerTracteur(id); return ResponseEntity.ok(Map.of("message", "Tracteur supprimé")); }
+        try { tracteurServiceImpl.supprimerTracteur(id); return ResponseEntity.ok(Map.of("message", "Tracteur supprimé")); }
         catch (RuntimeException e) { return ResponseEntity.notFound().build(); }
     }
 
     @PutMapping("/tracteurs/{id}/kilometrage")
     public ResponseEntity<?> updateKilometrage(@PathVariable String id, @RequestParam Double km) {
-        try { return ResponseEntity.ok(tracteurService.mettreAJourKilometrage(id, km)); }
+        try { return ResponseEntity.ok(tracteurServiceImpl.mettreAJourKilometrage(id, km)); }
         catch (RuntimeException e) { return ResponseEntity.badRequest().body(Map.of("error", e.getMessage())); }
     }
 
     @PostMapping("/tracteurs/{id}/maintenance")
     public ResponseEntity<?> startTracteurMaintenance(@PathVariable String id) {
-        try { return ResponseEntity.ok(tracteurService.enregistrerMaintenance(id, "Maintenance programmée", null)); }
+        try { return ResponseEntity.ok(tracteurServiceImpl.enregistrerMaintenance(id, "Maintenance programmée", null)); }
         catch (RuntimeException e) { return ResponseEntity.badRequest().body(Map.of("error", e.getMessage())); }
     }
 
     @PostMapping("/tracteurs/{id}/maintenance/end")
     public ResponseEntity<?> endTracteurMaintenance(@PathVariable String id) {
-        try { return ResponseEntity.ok(tracteurService.terminerMaintenance(id)); }
+        try { return ResponseEntity.ok(tracteurServiceImpl.terminerMaintenance(id)); }
         catch (RuntimeException e) { return ResponseEntity.badRequest().body(Map.of("error", e.getMessage())); }
     }
 }

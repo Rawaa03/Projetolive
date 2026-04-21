@@ -2,7 +2,8 @@ package com.example.demo.controller;
 
 import com.example.demo.model.Utilisateur;
 import com.example.demo.repository.UtilisateurRepository;
-import com.example.demo.service.AuthService;
+import com.example.demo.service.impl.AuthServiceImpl;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -17,7 +18,7 @@ import java.util.Map;
 public class UserProfileController {
 
     @Autowired
-    private AuthService authService;
+    private AuthServiceImpl authServiceImpl;
 
     @Autowired
     private UtilisateurRepository utilisateurRepository;
@@ -27,7 +28,7 @@ public class UserProfileController {
         String email = authentication.getName();
         Utilisateur utilisateur = utilisateurRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
-        return ResponseEntity.ok(authService.getProfil(utilisateur.getId()));
+        return ResponseEntity.ok(authServiceImpl.getProfil(utilisateur.getId()));
     }
 
     @PutMapping
@@ -37,7 +38,7 @@ public class UserProfileController {
         String email = authentication.getName();
         Utilisateur utilisateur = utilisateurRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
-        Utilisateur misAJour = authService.mettreAJourProfil(utilisateur.getId(), updates);
+        Utilisateur misAJour = authServiceImpl.mettreAJourProfil(utilisateur.getId(), updates);
         
         Map<String, Object> response = new HashMap<>();
         response.put("message", "Profil mis à jour avec succès");
@@ -53,7 +54,7 @@ public class UserProfileController {
         Utilisateur utilisateur = utilisateurRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
         
-        authService.changerMotDePasse(
+        authServiceImpl.changerMotDePasse(
             utilisateur.getId(),
             request.get("ancienMotDePasse"),
             request.get("nouveauMotDePasse")

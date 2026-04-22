@@ -174,4 +174,87 @@ public class AlerteController {
         alerteService.supprimer(id);
         return ResponseEntity.noContent().build();
     }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // RESPONSABLE-SPECIFIC ALERT MANAGEMENT ENDPOINTS
+    // These endpoints allow responsables to see and manage alerts from their vergers
+    // ═══════════════════════════════════════════════════════════════════════
+
+    /**
+     * GET /api/alertes/responsable
+     * Responsable sees all alerts from their managed vergers
+     */
+    @GetMapping("/responsable")
+    @PreAuthorize("hasRole('RESPONSABLE')")
+    public ResponseEntity<List<AlerteResponse>> getAlertesResponsable(
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(alerteService.getByResponsable(userDetails));
+    }
+
+    /**
+     * GET /api/alertes/responsable/{id}
+     * Responsable sees detail of a specific alert (only if from their verger)
+     * Returns 403 if they don't own the alert's verger
+     */
+    @GetMapping("/responsable/{id}")
+    @PreAuthorize("hasRole('RESPONSABLE')")
+    public ResponseEntity<AlerteResponse> getAlertDetailResponsable(
+            @PathVariable String id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        // Verify responsable owns this alert before showing details
+        alerteService.verifyResponsableOwnsAlert(id, userDetails);
+        return ResponseEntity.ok(alerteService.getById(id));
+    }
+
+    /**
+     * GET /api/alertes/responsable/statut?statut=EN_ATTENTE
+     * Responsable filters alerts by status (only from their vergers)
+     */
+    @GetMapping("/responsable/statut")
+    @PreAuthorize("hasRole('RESPONSABLE')")
+    public ResponseEntity<List<AlerteResponse>> getAlertesResponsableByStatut(
+            @RequestParam StatutAlerte statut,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(alerteService.getByStatutAndResponsable(statut, userDetails));
+    }
+
+    /**
+     * GET /api/alertes/responsable/urgence?urgence=CRITIQUE
+     * Responsable filters alerts by urgency level (only from their vergers)
+     */
+    @GetMapping("/responsable/urgence")
+    @PreAuthorize("hasRole('RESPONSABLE')")
+    public ResponseEntity<List<AlerteResponse>> getAlertesResponsableByUrgence(
+            @RequestParam NiveauUrgence urgence,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(alerteService.getByUrgenceAndResponsable(urgence, userDetails));
+    }
+
+    /**
+     * PATCH /api/alertes/responsable/{id}/statut?statut=EN_COURS
+     * Responsable changes alert status (EN_ATTENTE → EN_COURS → TRAITEE)
+     * Returns 403 if they don't own the alert's verger
+     */
+    @PatchMapping("/responsable/{id}/statut")
+    @PreAuthorize("hasRole('RESPONSABLE')")
+    public ResponseEntity<AlerteResponse> changerStatutResponsable(
+            @PathVariable String id,
+            @RequestParam StatutAlerte statut,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(alerteService.changerStatutForResponsable(id, statut, userDetails));
+    }
+
+    /**
+     * PATCH /api/alertes/responsable/{id}/traiter?commentaire=Problème résolu
+     * Responsable marks alert as treated with treatment comment
+     * Returns 403 if they don't own the alert's verger
+     */
+    @PatchMapping("/responsable/{id}/traiter")
+    @PreAuthorize("hasRole('RESPONSABLE')")
+    public ResponseEntity<AlerteResponse> marquerTraiteeResponsable(
+            @PathVariable String id,
+            @RequestParam String commentaire,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(alerteService.marquerTraiteeForResponsable(id, commentaire, userDetails));
+    }
 }

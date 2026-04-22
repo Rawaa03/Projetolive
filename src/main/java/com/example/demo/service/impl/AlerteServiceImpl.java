@@ -300,6 +300,41 @@ public class AlerteServiceImpl implements AlerteService {
                 .orElseThrow(() -> new ResourceNotFoundException("Utilisateur introuvable : " + id));
     }
 
+    @Override
+    public void verifyResponsableOwnsAlert(String alerteId, UserDetails userDetails) {
+        AlerteTerrain alerte = findOrThrow(alerteId);
+        Verger verger = alerte.getVerger();
+        
+        if (verger == null || verger.getResponsable() == null) {
+            throw new AccessDeniedException("This alert has no assigned responsable");
+        }
+        
+        Utilisateur responsable = utilisateurRepo.findByEmail(userDetails.getUsername())
+                .orElseThrow(() -> new ResourceNotFoundException("Responsable not found"));
+        
+        if (!verger.getResponsable().getId().equals(responsable.getId())) {
+            throw new AccessDeniedException("You do not have permission to access this alert");
+        }
+    }
+
+    @Override
+    public AlerteResponse changerStatutForResponsable(String id, StatutAlerte statut, UserDetails userDetails) {
+        // Verify responsable owns the alert
+        verifyResponsableOwnsAlert(id, userDetails);
+        
+        // If ownership check passed, proceed with status change
+        return changerStatut(id, statut);
+    }
+
+    @Override
+    public AlerteResponse marquerTraiteeForResponsable(String id, String commentaire, UserDetails userDetails) {
+        // Verify responsable owns the alert
+        verifyResponsableOwnsAlert(id, userDetails);
+        
+        // If ownership check passed, proceed with marking as treated
+        return marquerTraitee(id, commentaire);
+    }
+
     private AlerteResponse toResponse(AlerteTerrain a) {
         Utilisateur ag = a.getAgriculteur();
         Verger v = a.getVerger();

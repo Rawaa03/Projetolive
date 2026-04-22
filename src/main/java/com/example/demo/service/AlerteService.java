@@ -26,4 +26,7 @@ public interface AlerteService {
     void supprimer(String id);
     void verifierProprietaireAlerte(String alerteId, UserDetails userDetails);
     void verifyResponsableOwnsVerger(String vergerId, UserDetails userDetails);
+    void verifyResponsableOwnsAlert(String alerteId, UserDetails userDetails);
+    AlerteResponse changerStatutForResponsable(String id, StatutAlerte statut, UserDetails userDetails);
+    AlerteResponse marquerTraiteeForResponsable(String id, String commentaire, UserDetails userDetails);
 }

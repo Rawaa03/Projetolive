@@ -197,17 +197,13 @@ public class AuthServiceImpl implements com.example.demo.service.AuthService{
             case ADMIN:
                 break;
             case RESPONSABLE:
-                if (utilisateur.getFonction() == null || utilisateur.getFonction().trim().isEmpty()) {
-                    throw new RuntimeException("La fonction est requise pour un responsable");
-                }
+              
                 if (utilisateur.getDatePrisePoste() == null) {
                     utilisateur.setDatePrisePoste(new Date());
                 }
                 break;
             case AGRICULTEUR:
-                if (utilisateur.getNomExploitation() == null || utilisateur.getNomExploitation().trim().isEmpty()) {
-                    throw new RuntimeException("Le nom d'exploitation est requis pour un agriculteur");
-                }
+              
                 break;
             case TRAVAILLEUR:
                 if (utilisateur.getCin() == null || utilisateur.getCin().trim().isEmpty()) {

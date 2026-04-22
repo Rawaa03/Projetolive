@@ -47,4 +47,7 @@ public interface VergerRepository extends MongoRepository<Verger, String> {
      */
     @Query("{ 'location': { $nearSphere: { $geometry: { type: 'Point', coordinates: [?0, ?1] }, $maxDistance: ?2 } }, 'estSupprimer': false }")
     List<Verger> findNearby(Double longitude, Double latitude, Double maxDistanceMetres);
+
+    @Query("{ 'responsable' : ?0, 'estSupprimer' : false }")
+    List<Verger> findByResponsableIdAndEstSupprimerFalse(ObjectId responsableId);
 }

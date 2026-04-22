@@ -42,21 +42,46 @@ public class AlerteController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('RESPONSABLE', 'ADMIN')")
-    public ResponseEntity<List<AlerteResponse>> getAll() {
-        return ResponseEntity.ok(alerteService.getAll());
+    public ResponseEntity<List<AlerteResponse>> getAll(
+            @AuthenticationPrincipal UserDetails userDetails) {
+        boolean isAdmin = userDetails.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        
+        if (isAdmin) {
+            return ResponseEntity.ok(alerteService.getAll());  // ADMIN sees all alerts
+        }
+        
+        // RESPONSABLE sees only alerts from vergers they manage
+        return ResponseEntity.ok(alerteService.getByResponsable(userDetails));
     }
 
     @GetMapping("/statut")
     @PreAuthorize("hasAnyRole('RESPONSABLE', 'ADMIN')")
-    public ResponseEntity<List<AlerteResponse>> getByStatut(@RequestParam StatutAlerte statut) {
-        return ResponseEntity.ok(alerteService.getByStatut(statut));
+    public ResponseEntity<List<AlerteResponse>> getByStatut(
+            @RequestParam StatutAlerte statut,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        boolean isAdmin = userDetails.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        
+        if (isAdmin) {
+            return ResponseEntity.ok(alerteService.getByStatut(statut));
+        }
+        return ResponseEntity.ok(alerteService.getByStatutAndResponsable(statut, userDetails));
     }
 
     // RESPONSABLE triage — filter by computed urgency level
     @GetMapping("/urgence")
     @PreAuthorize("hasAnyRole('RESPONSABLE', 'ADMIN')")
-    public ResponseEntity<List<AlerteResponse>> getByUrgence(@RequestParam NiveauUrgence urgence) {
-        return ResponseEntity.ok(alerteService.getByUrgence(urgence));
+    public ResponseEntity<List<AlerteResponse>> getByUrgence(
+            @RequestParam NiveauUrgence urgence,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        boolean isAdmin = userDetails.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        
+        if (isAdmin) {
+            return ResponseEntity.ok(alerteService.getByUrgence(urgence));
+        }
+        return ResponseEntity.ok(alerteService.getByUrgenceAndResponsable(urgence, userDetails));
     }
 
     // Cluster view — alerts within 500m of a coordinate
@@ -64,13 +89,29 @@ public class AlerteController {
     @PreAuthorize("hasAnyRole('RESPONSABLE', 'ADMIN')")
     public ResponseEntity<List<AlerteResponse>> getNearby(
             @RequestParam Double longitude,
-            @RequestParam Double latitude) {
-        return ResponseEntity.ok(alerteService.getNearbyAlerts(longitude, latitude));
+            @RequestParam Double latitude,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        boolean isAdmin = userDetails.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        
+        if (isAdmin) {
+            return ResponseEntity.ok(alerteService.getNearbyAlerts(longitude, latitude));
+        }
+        return ResponseEntity.ok(alerteService.getNearbyAlertsForResponsable(longitude, latitude, userDetails));
     }
 
     @GetMapping("/verger/{vergerId}")
     @PreAuthorize("hasAnyRole('RESPONSABLE', 'ADMIN')")
-    public ResponseEntity<List<AlerteResponse>> getByVerger(@PathVariable String vergerId) {
+    public ResponseEntity<List<AlerteResponse>> getByVerger(
+            @PathVariable String vergerId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        boolean isAdmin = userDetails.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        
+        if (!isAdmin) {
+            // Verify responsable owns this verger
+            alerteService.verifyResponsableOwnsVerger(vergerId, userDetails);
+        }
         return ResponseEntity.ok(alerteService.getByVerger(vergerId));
     }
 

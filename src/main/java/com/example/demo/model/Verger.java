@@ -28,6 +28,9 @@ public class Verger {
     @DocumentReference(lazy = true)
     private Utilisateur agriculteur;
 
+    @DocumentReference(lazy = true)
+    private Utilisateur responsable;
+
     private Double superficie;             // hectares
     private String typeOlive;             // Chemlali, Chétoui, Picholine…
     private Double rendementEstime;        // kg

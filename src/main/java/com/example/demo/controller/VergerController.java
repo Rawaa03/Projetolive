@@ -26,8 +26,10 @@ public class VergerController {
 
     @PostMapping
     @PreAuthorize("hasAnyRole('RESPONSABLE','ADMIN')")
-    public ResponseEntity<VergerResponse> creer(@Valid @RequestBody VergerRequest req) {
-        return ResponseEntity.ok(vergerService.creer(req));
+    public ResponseEntity<VergerResponse> creer(
+            @Valid @RequestBody VergerRequest req,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(vergerService.creer(req, userDetails));
     }
 
     // ── READ ──────────────────────────────────────────────────────────────────
@@ -48,8 +50,16 @@ public class VergerController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('RESPONSABLE', 'ADMIN')")
-    public ResponseEntity<List<VergerResponse>> getAll() {
-        return ResponseEntity.ok(vergerService.getAll());
+    public ResponseEntity<List<VergerResponse>> getAll(
+            @AuthenticationPrincipal UserDetails userDetails) {
+        boolean isAdmin = userDetails.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
+        if (isAdmin) {
+            return ResponseEntity.ok(vergerService.getAll());
+        }
+
+        return ResponseEntity.ok(vergerService.getByResponsable(userDetails));
     }
 
     @GetMapping("/agriculteur/{agriculteurId}")

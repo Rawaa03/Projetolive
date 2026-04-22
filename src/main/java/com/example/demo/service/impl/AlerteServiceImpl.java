@@ -100,8 +100,61 @@ public class AlerteServiceImpl implements AlerteService {
     }
 
     @Override
+    public List<AlerteResponse> getByStatutAndResponsable(StatutAlerte statut, UserDetails userDetails) {
+        Utilisateur responsable = utilisateurRepo.findByEmail(userDetails.getUsername())
+                .orElseThrow(() -> new ResourceNotFoundException("Responsable not found"));
+        
+        List<Verger> vergersManages = vergerRepo.findByResponsableIdAndEstSupprimerFalse(
+                new ObjectId(responsable.getId())
+        );
+        
+        return vergersManages.stream()
+                .flatMap(verger -> alerteRepo.findByVergerId(new ObjectId(verger.getId())).stream())
+                .filter(alerte -> alerte.getStatut() == statut)
+                .filter(alerte -> Boolean.FALSE.equals(alerte.getEstSupprimer()))
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public List<AlerteResponse> getByUrgence(NiveauUrgence urgence) {
         return alerteRepo.findByNiveauUrgenceAndNotDeleted(urgence).stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<AlerteResponse> getByUrgenceAndResponsable(NiveauUrgence urgence, UserDetails userDetails) {
+        Utilisateur responsable = utilisateurRepo.findByEmail(userDetails.getUsername())
+                .orElseThrow(() -> new ResourceNotFoundException("Responsable not found"));
+        
+        List<Verger> vergersManages = vergerRepo.findByResponsableIdAndEstSupprimerFalse(
+                new ObjectId(responsable.getId())
+        );
+        
+        return vergersManages.stream()
+                .flatMap(verger -> alerteRepo.findByVergerId(new ObjectId(verger.getId())).stream())
+                .filter(alerte -> alerte.getNiveauUrgence() == urgence)
+                .filter(alerte -> Boolean.FALSE.equals(alerte.getEstSupprimer()))
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<AlerteResponse> getByResponsable(UserDetails userDetails) {
+        // Get the authenticated responsable
+        Utilisateur responsable = utilisateurRepo.findByEmail(userDetails.getUsername())
+                .orElseThrow(() -> new ResourceNotFoundException("Responsable not found"));
+        
+        // Find all vergers created by this responsable
+        List<Verger> vergersManages = vergerRepo.findByResponsableIdAndEstSupprimerFalse(
+                new ObjectId(responsable.getId())
+        );
+        
+        // Collect all alerts from these vergers
+        return vergersManages.stream()
+                .flatMap(verger -> alerteRepo.findByVergerId(new ObjectId(verger.getId())).stream())
+                .filter(alerte -> Boolean.FALSE.equals(alerte.getEstSupprimer()))
                 .map(this::toResponse)
                 .collect(Collectors.toList());
     }
@@ -124,6 +177,23 @@ public class AlerteServiceImpl implements AlerteService {
     @Override
     public List<AlerteResponse> getNearbyAlerts(Double longitude, Double latitude) {
         return alerteRepo.findNearbyAlerts(longitude, latitude).stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<AlerteResponse> getNearbyAlertsForResponsable(Double longitude, Double latitude, UserDetails userDetails) {
+        Utilisateur responsable = utilisateurRepo.findByEmail(userDetails.getUsername())
+                .orElseThrow(() -> new ResourceNotFoundException("Responsable not found"));
+        
+        List<Verger> vergersManages = vergerRepo.findByResponsableIdAndEstSupprimerFalse(
+                new ObjectId(responsable.getId())
+        );
+        
+        return alerteRepo.findNearbyAlerts(longitude, latitude).stream()
+                .filter(alerte -> vergersManages.stream()
+                        .anyMatch(v -> v.getId().equals(alerte.getVerger().getId())))
+                .filter(alerte -> Boolean.FALSE.equals(alerte.getEstSupprimer()))
                 .map(this::toResponse)
                 .collect(Collectors.toList());
     }
@@ -163,6 +233,19 @@ public class AlerteServiceImpl implements AlerteService {
         AlerteTerrain alerte = findOrThrow(alerteId);
         if (!alerte.getAgriculteur().getEmail().equals(userDetails.getUsername())) {
             throw new AccessDeniedException("Vous n'êtes pas le propriétaire de cette alerte");
+        }
+    }
+
+    @Override
+    public void verifyResponsableOwnsVerger(String vergerId, UserDetails userDetails) {
+        Verger verger = vergerRepo.findById(vergerId)
+                .orElseThrow(() -> new ResourceNotFoundException("Verger not found"));
+        
+        Utilisateur responsable = utilisateurRepo.findByEmail(userDetails.getUsername())
+                .orElseThrow(() -> new ResourceNotFoundException("Responsable not found"));
+        
+        if (verger.getResponsable() == null || !verger.getResponsable().getId().equals(responsable.getId())) {
+            throw new AccessDeniedException("You do not have access to this verger");
         }
     }
 

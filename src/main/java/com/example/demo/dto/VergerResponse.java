@@ -13,6 +13,10 @@ public class VergerResponse {
     private String agriculteurId;
     private String agriculteurNom;
     private String agriculteurEmail;
+    private String responsableId;
+    private String responsableNom;
+    private String responsableEmail;
+    private String responsableFonction;
     private Double superficie;
     private String typeOlive;
     private Integer nbArbre;

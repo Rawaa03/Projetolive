@@ -9,10 +9,11 @@ import java.util.List;
 
 public interface VergerService {
 
-    VergerResponse creer(VergerRequest request);
+    VergerResponse creer(VergerRequest request, UserDetails userDetails);
     VergerResponse getById(String id);
     List<VergerResponse> getAll();
     List<VergerResponse> getByAgriculteur(String agriculteurId);
+    List<VergerResponse> getByResponsable(UserDetails userDetails);
     List<VergerResponse> getByStatut(StatutVerger statut);
     VergerResponse mettreAJour(String id, VergerRequest request);
     VergerResponse changerStatut(String id, StatutVerger statut);

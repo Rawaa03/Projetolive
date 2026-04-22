@@ -10,6 +10,8 @@ public class VergerRequest {
     @NotBlank
     private String agriculteurId;
 
+    private String responsableId;
+
     @Positive
     private Double superficie;
 

@@ -33,11 +33,20 @@ public class VergerServiceImpl implements VergerService {
     // ── CREATE ────────────────────────────────────────────────────────────────
 
     @Override
-    public VergerResponse creer(VergerRequest req) {
+    public VergerResponse creer(VergerRequest req, UserDetails userDetails) {
         Utilisateur agriculteur = getAgriculteurOrThrow(req.getAgriculteurId());
+
+        Utilisateur responsable;
+        if (req.getResponsableId() != null && !req.getResponsableId().isBlank()) {
+            responsable = getUtilisateurOrThrow(req.getResponsableId());
+        } else {
+            responsable = utilisateurRepo.findByEmail(userDetails.getUsername())
+                    .orElseThrow(() -> new ResourceNotFoundException("Responsable introuvable"));
+        }
 
         Verger.VergerBuilder builder = Verger.builder()
                 .agriculteur(agriculteur)
+                .responsable(responsable)
                 .superficie(req.getSuperficie())
                 .typeOlive(req.getTypeOlive())
                 .rendementEstime(req.getRendementEstime())
@@ -83,6 +92,17 @@ public class VergerServiceImpl implements VergerService {
                 .map(this::toResponse)
                 .collect(Collectors.toList());
     }
+
+        @Override
+        public List<VergerResponse> getByResponsable(UserDetails userDetails) {
+        Utilisateur responsable = utilisateurRepo.findByEmail(userDetails.getUsername())
+            .orElseThrow(() -> new ResourceNotFoundException("Responsable introuvable"));
+
+        return vergerRepo.findByResponsableIdAndEstSupprimerFalse(new ObjectId(responsable.getId()))
+            .stream()
+            .map(this::toResponse)
+            .collect(Collectors.toList());
+        }
 
     @Override
     public List<VergerResponse> getByStatut(StatutVerger statut) {
@@ -221,13 +241,23 @@ public class VergerServiceImpl implements VergerService {
                 .orElseThrow(() -> new ResourceNotFoundException("Agriculteur introuvable : " + id));
     }
 
+    private Utilisateur getUtilisateurOrThrow(String id) {
+        return utilisateurRepo.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Utilisateur introuvable : " + id));
+    }
+
     private VergerResponse toResponse(Verger v) {
         Utilisateur ag = v.getAgriculteur();
+        Utilisateur resp = v.getResponsable();
         return VergerResponse.builder()
                 .id(v.getId())
                 .agriculteurId(ag.getId())
                 .agriculteurNom(ag.getPrenom() + " " + ag.getNom())
                 .agriculteurEmail(ag.getEmail())
+                .responsableId(resp != null ? resp.getId() : null)
+                .responsableNom(resp != null ? resp.getPrenom() + " " + resp.getNom() : null)
+                .responsableEmail(resp != null ? resp.getEmail() : null)
+                .responsableFonction(resp != null ? resp.getFonction() : null)
                 .superficie(v.getSuperficie())
                 .typeOlive(v.getTypeOlive())
                 .rendementEstime(v.getRendementEstime())

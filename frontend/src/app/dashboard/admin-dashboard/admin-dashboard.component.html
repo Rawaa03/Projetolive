@@ -1,0 +1,216 @@
+<div class="admin-dashboard" *ngIf="!loading">
+  <!-- Header -->
+  <div class="dashboard-header">
+    <div>
+      <h2>Tableau de Bord Administration</h2>
+      <p>Supervision système complète de la plateforme</p>
+    </div>
+  </div>
+
+  <!-- Error Message -->
+  <div class="error-message" *ngIf="error">
+    <p>{{ error }}</p>
+  </div>
+
+  <!-- System-Wide Stats -->
+  <div class="cards-grid" *ngIf="dashboard">
+    <app-dashboard-card
+      title="Production Totale"
+      [value]="dashboard.totalSystemProductionKg | number: '1.0-0'"
+      unit="kg"
+      icon="🍃"
+      backgroundColor="#e8f5e9"
+      borderColor="#4caf50">
+    </app-dashboard-card>
+
+    <app-dashboard-card
+      title="Utilisateurs Actifs"
+      [value]="dashboard.activeUsers"
+      [unit]="'sur ' + dashboard.totalUsers"
+      icon="👥"
+      backgroundColor="#e3f2fd"
+      borderColor="#2196f3">
+    </app-dashboard-card>
+
+    <app-dashboard-card
+      title="Vergers Totaux"
+      [value]="dashboard.totalVergers"
+      unit="vergers"
+      icon="🌳"
+      backgroundColor="#fce4ec"
+      borderColor="#e91e63">
+    </app-dashboard-card>
+
+    <app-dashboard-card
+      title="Ouvriers"
+      [value]="dashboard.totalWorkers"
+      unit="personnes"
+      icon="👷"
+      backgroundColor="#f3e5f5"
+      borderColor="#9c27b0">
+    </app-dashboard-card>
+
+    <app-dashboard-card
+      title="Tournées Totales"
+      [value]="dashboard.totalSystemCollectionTours"
+      unit="campagnes"
+      icon="📋"
+      backgroundColor="#fff3e0"
+      borderColor="#ff9800">
+    </app-dashboard-card>
+
+    <app-dashboard-card
+      title="Efficacité Système"
+      [value]="dashboard.systemEfficiencyRating | number: '1.0-2'"
+      unit="rating"
+      icon="⚙"
+      backgroundColor="#e0f2f1"
+      borderColor="#009688">
+    </app-dashboard-card>
+  </div>
+
+  <!-- Main Content Grid -->
+  <div class="content-grid" *ngIf="dashboard">
+    <!-- User Management -->
+    <section class="dashboard-section">
+      <div class="section-header">
+        <h3>Gestion des Utilisateurs</h3>
+      </div>
+      <div class="user-stats">
+        <div class="stat-item" *ngFor="let role of getUsersByRoleEntries()">
+          <span class="stat-role">{{ role.role }}</span>
+          <span class="stat-count">{{ role.count }}</span>
+        </div>
+      </div>
+      <div class="user-summary">
+        <p><strong>Total Actifs:</strong> {{ dashboard.activeUsers }}</p>
+        <p><strong>Total Inactifs:</strong> {{ dashboard.inactiveUsers }}</p>
+      </div>
+    </section>
+
+    <!-- Verger Status -->
+    <section class="dashboard-section">
+      <div class="section-header">
+        <h3>État des Vergers</h3>
+      </div>
+      <div class="status-stats">
+        <div class="status-item" *ngFor="let status of getVergersByStatusEntries()">
+          <span class="status-label">{{ status.status }}</span>
+          <span class="status-value">{{ status.count }}</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Resource Utilization -->
+    <section class="dashboard-section" *ngIf="dashboard.resourceUtilization">
+      <div class="section-header">
+        <h3>Utilisation des Ressources</h3>
+      </div>
+      <div class="resource-grid">
+        <div class="resource-item">
+          <h4>Bennes</h4>
+          <div class="resource-stat">
+            <span class="active">{{ dashboard.resourceUtilization.activeBennes }}</span>
+            <span class="total">/ {{ dashboard.resourceUtilization.totalBennes }}</span>
+          </div>
+          <app-progress-bar
+            [label]="'Utilisation'"
+            [percentage]="dashboard.resourceUtilization.benneUtilizationPercent"
+            color="#ff9800">
+          </app-progress-bar>
+        </div>
+        <div class="resource-item">
+          <h4>Tracteurs</h4>
+          <div class="resource-stat">
+            <span class="active">{{ dashboard.resourceUtilization.activeTracteurs }}</span>
+            <span class="total">/ {{ dashboard.resourceUtilization.totalTracteurs }}</span>
+          </div>
+          <app-progress-bar
+            [label]="'Utilisation'"
+            [percentage]="dashboard.resourceUtilization.tracteurUtilizationPercent"
+            color="#3498db">
+          </app-progress-bar>
+        </div>
+        <div class="resource-item">
+          <h4>Coût par kg</h4>
+          <div class="cost">{{ dashboard.resourceUtilization.costPerKg | number: '1.2-2' }} €</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Alerts & Issues -->
+    <section class="dashboard-section full-width" *ngIf="dashboard.systemAlerts.length > 0">
+      <div class="section-header">
+        <h3>Alertes Système</h3>
+        <span class="badge">{{ dashboard.totalAlerts }}</span>
+      </div>
+      <div class="alerts-list">
+        <app-alert-badge *ngFor="let alert of dashboard.systemAlerts" [alert]="alert">
+        </app-alert-badge>
+      </div>
+    </section>
+
+    <!-- Top Performing Vergers -->
+    <section class="dashboard-section full-width" *ngIf="dashboard.topPerformingVergers.length > 0">
+      <div class="section-header">
+        <h3>Vergers Meilleure Performance</h3>
+      </div>
+      <div class="performers-grid">
+        <div class="performer-card" *ngFor="let verger of dashboard.topPerformingVergers; let i = index">
+          <div class="rank">{{ i + 1 }}</div>
+          <div class="performer-info">
+            <h4>{{ verger.name }}</h4>
+            <p>{{ verger.productionKg | number: '1.0-0' }} {{ verger.unit }}</p>
+          </div>
+          <div class="performer-badge">🏆</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- All Vergers Overview -->
+    <section class="dashboard-section full-width">
+      <div class="section-header">
+        <h3>Aperçu Tous les Vergers</h3>
+        <span class="badge">{{ dashboard.totalVergers }}</span>
+      </div>
+      <div class="vergers-list">
+        <app-verger-card *ngFor="let verger of dashboard.allVergers | slice: 0:10" [verger]="verger">
+        </app-verger-card>
+      </div>
+      <div class="view-all" *ngIf="dashboard.allVergers.length > 10">
+        <p>Affichage 10 sur {{ dashboard.allVergers.length }} vergers</p>
+      </div>
+    </section>
+
+    <!-- System Statistics Summary -->
+    <section class="dashboard-section full-width">
+      <div class="section-header">
+        <h3>Statistiques Système</h3>
+      </div>
+      <div class="stats-summary">
+        <div class="summary-item">
+          <span class="summary-label">Production Moyenne par Verger</span>
+          <span class="summary-value">{{ dashboard.systemAverageProductionPerVerger | number: '1.0-0' }} kg</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Efficacité Système</span>
+          <span class="summary-value">{{ dashboard.systemEfficiencyRating | number: '1.0-2' }}</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Production Totale Campagne</span>
+          <span class="summary-value">{{ dashboard.totalSystemProductionKg | number: '1.0-0' }} kg</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Nombre de Tournées</span>
+          <span class="summary-value">{{ dashboard.totalSystemCollectionTours }}</span>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-state" *ngIf="loading">
+    <div class="spinner"></div>
+    <p>Chargement des données système...</p>
+  </div>
+</div>

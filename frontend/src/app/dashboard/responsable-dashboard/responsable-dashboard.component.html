@@ -1,0 +1,188 @@
+<div class="responsable-dashboard" *ngIf="!loading">
+  <!-- Header -->
+  <div class="dashboard-header">
+    <div>
+      <h2>Tableau de Bord Responsable</h2>
+      <p *ngIf="dashboard">Supervision de {{ dashboard.prenom }} {{ dashboard.nom }}</p>
+    </div>
+  </div>
+
+  <!-- Error Message -->
+  <div class="error-message" *ngIf="error">
+    <p>{{ error }}</p>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="cards-grid" *ngIf="dashboard">
+    <app-dashboard-card
+      title="Vergers Assignés"
+      [value]="dashboard.totalAssignedVergers"
+      unit="vergers"
+      icon="🌳"
+      backgroundColor="#e8f5e9"
+      borderColor="#4caf50">
+    </app-dashboard-card>
+
+    <app-dashboard-card
+      title="Ouvriers Actifs"
+      [value]="dashboard.activeWorkers"
+      [unit]="'sur ' + dashboard.totalWorkers"
+      icon="👷"
+      backgroundColor="#fce4ec"
+      borderColor="#e91e63">
+    </app-dashboard-card>
+
+    <app-dashboard-card
+      title="Collecte Réalisée"
+      [value]="dashboard.totalCollectionKg | number: '1.0-0'"
+      unit="kg"
+      icon="🍃"
+      backgroundColor="#e3f2fd"
+      borderColor="#2196f3">
+    </app-dashboard-card>
+
+    <app-dashboard-card
+      title="Progression"
+      [value]="dashboard.collectionPercentage | number: '1.1-1'"
+      unit="%"
+      icon="📈"
+      backgroundColor="#f3e5f5"
+      borderColor="#9c27b0">
+    </app-dashboard-card>
+
+    <app-dashboard-card
+      title="Tournées Complétées"
+      [value]="dashboard.completedTournees"
+      unit="tournées"
+      icon="✓"
+      backgroundColor="#e0f2f1"
+      borderColor="#009688">
+    </app-dashboard-card>
+
+    <app-dashboard-card
+      title="Kg par Ouvrier"
+      [value]="dashboard.averageKgPerWorker | number: '1.0-0'"
+      unit="kg"
+      icon="⚙"
+      backgroundColor="#fff3e0"
+      borderColor="#ff9800">
+    </app-dashboard-card>
+  </div>
+
+  <!-- Main Content Grid -->
+  <div class="content-grid" *ngIf="dashboard">
+    <!-- Vergers Section -->
+    <section class="dashboard-section full-width">
+      <div class="section-header">
+        <h3>Vergers Assignés</h3>
+        <span class="badge">{{ dashboard.totalAssignedVergers }}</span>
+      </div>
+      <div class="vergers-grid">
+        <app-verger-card *ngFor="let verger of dashboard.assignedVergers" [verger]="verger">
+        </app-verger-card>
+      </div>
+    </section>
+
+    <!-- Workers Section -->
+    <section class="dashboard-section">
+      <div class="section-header">
+        <h3>Équipe de Travail</h3>
+        <span class="badge">{{ dashboard.totalWorkers }}</span>
+      </div>
+      <div class="workers-list">
+        <div class="worker-item" *ngFor="let worker of dashboard.workers">
+          <div class="worker-name">
+            <strong>{{ worker.prenom }} {{ worker.nom }}</strong>
+            <span class="status" [style.background-color]="worker.statut === 'ACTIF' ? '#27ae60' : '#e74c3c'">
+              {{ worker.statut }}
+            </span>
+          </div>
+          <div class="worker-details">
+            <span>{{ worker.type }}</span>
+            <span>{{ worker.specialite }}</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tours Status Section -->
+    <section class="dashboard-section">
+      <div class="section-header">
+        <h3>État des Tournées</h3>
+      </div>
+      <div class="tours-stats">
+        <div class="stat-box">
+          <span class="stat-number">{{ dashboard.planifiedTournees }}</span>
+          <span class="stat-label">Planifiées</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-number">{{ dashboard.ongoingTournees }}</span>
+          <span class="stat-label">En cours</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-number">{{ dashboard.completedTournees }}</span>
+          <span class="stat-label">Complétées</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Recent Tours Section -->
+    <section class="dashboard-section full-width">
+      <div class="section-header">
+        <h3>Tournées Récentes</h3>
+      </div>
+      <div class="tournees-grid">
+        <app-tournee-card *ngFor="let tournee of dashboard.recentTournees" [tournee]="tournee">
+        </app-tournee-card>
+      </div>
+    </section>
+
+    <!-- Production vs Targets -->
+    <section class="dashboard-section full-width">
+      <div class="section-header">
+        <h3>Production par Verger</h3>
+      </div>
+      <div class="production-list">
+        <div class="production-item" *ngFor="let prod of dashboard.vergerProduction">
+          <div class="prod-header">
+            <span class="prod-name">{{ prod.vergerName }}</span>
+            <span class="prod-percent">{{ prod.percentageOfTarget | number: '1.0-0' }}%</span>
+          </div>
+          <app-progress-bar
+            [label]="''"
+            [percentage]="prod.percentageOfTarget"
+            [showPercentage]="false"
+            color="#3498db">
+          </app-progress-bar>
+          <div class="prod-values">
+            <span>Réalisé: {{ prod.actualProduction | number: '1.0-0' }} kg</span>
+            <span>Cible: {{ prod.targetProduction | number: '1.0-0' }} kg</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Efficiency Metrics -->
+    <section class="dashboard-section full-width">
+      <div class="section-header">
+        <h3>Métriques d'Efficacité</h3>
+      </div>
+      <div class="efficiency-grid">
+        <div class="efficiency-item" *ngFor="let metric of dashboard.efficiencyMetrics">
+          <h4>{{ metric.metricName }}</h4>
+          <div class="metric-value">{{ metric.value | number: '1.0-0' }} {{ metric.unit }}</div>
+          <div class="metric-benchmark">Benchmark: {{ metric.benchmark | number: '1.0-0' }}</div>
+          <span class="metric-status" [class]="'status-' + metric.status.toLowerCase()">
+            {{ metric.status }}
+          </span>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-state" *ngIf="loading">
+    <div class="spinner"></div>
+    <p>Chargement des données...</p>
+  </div>
+</div>

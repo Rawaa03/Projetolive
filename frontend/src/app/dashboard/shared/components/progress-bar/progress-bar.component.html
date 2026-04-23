@@ -1,0 +1,9 @@
+<div class="progress-container">
+  <div class="progress-header">
+    <span class="progress-label">{{ label }}</span>
+    <span class="progress-value" *ngIf="showPercentage">{{ percentage | number: '1.0-0' }}%</span>
+  </div>
+  <div class="progress-bar">
+    <div class="progress-fill" [style.width.%]="percentage" [style.backgroundColor]="color"></div>
+  </div>
+</div>

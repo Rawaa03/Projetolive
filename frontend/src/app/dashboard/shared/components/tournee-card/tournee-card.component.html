@@ -1,0 +1,26 @@
+<div class="tournee-card">
+  <div class="tournee-header">
+    <div class="tournee-title">
+      <h4>{{ tournee.code || 'N/A' }}</h4>
+      <p>{{ tournee.vergerNom || 'N/A' }}</p>
+    </div>
+    <span class="status-badge" [style.background-color]="getStatusColor()">
+      {{ getStatusLabel() }}
+    </span>
+  </div>
+
+  <div class="tournee-info">
+    <div class="info-row">
+      <span class="info-label">Arbres</span>
+      <span class="info-value">{{ tournee.nbreArbre || 0 }}</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">Collectée</span>
+      <span class="info-value">{{ tournee.quantiteCollecteeKg || 0 | number: '1.0-0' }} kg</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">Finalisée</span>
+      <span class="info-value">{{ tournee.collecteFinalisee ? '✓' : '✗' }}</span>
+    </div>
+  </div>
+</div>

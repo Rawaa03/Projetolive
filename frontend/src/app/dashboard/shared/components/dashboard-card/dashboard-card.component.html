@@ -1,0 +1,16 @@
+<div class="dashboard-card" [style.background-color]="backgroundColor" [style.border-color]="borderColor">
+  <div class="card-header">
+    <span class="card-icon">{{ icon }}</span>
+    <h3 class="card-title">{{ title }}</h3>
+  </div>
+
+  <div class="card-value">
+    <span class="value">{{ value }}</span>
+    <span class="unit" *ngIf="unit">{{ unit }}</span>
+  </div>
+
+  <div class="card-trend" *ngIf="trend !== null" [class]="getTrendClass()">
+    <span class="trend-icon">{{ getTrendIcon() }}</span>
+    <span class="trend-value">{{ trend | number: '1.1-1' }}%</span>
+  </div>
+</div>

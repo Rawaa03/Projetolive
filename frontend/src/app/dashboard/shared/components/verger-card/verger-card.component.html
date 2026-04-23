@@ -1,0 +1,34 @@
+<div class="verger-card">
+  <div class="verger-header">
+    <h3>{{ verger.typeOlive || 'N/A' }}</h3>
+    <span class="status-badge" [style.background-color]="getStatusColor()">
+      {{ verger.statut }}
+    </span>
+  </div>
+
+  <div class="verger-details">
+    <div class="detail-item">
+      <span class="detail-label">Superficie</span>
+      <span class="detail-value">{{ verger.superficie || 0 }} ha</span>
+    </div>
+    <div class="detail-item">
+      <span class="detail-label">Arbres</span>
+      <span class="detail-value">{{ verger.nbArbre || 0 }}</span>
+    </div>
+    <div class="detail-item">
+      <span class="detail-label">Maturité</span>
+      <span class="detail-value">{{ verger.maturiteActuelle || 0 }}%</span>
+    </div>
+  </div>
+
+  <div class="verger-production">
+    <div class="production-item">
+      <span>Collecte</span>
+      <strong>{{ verger.totalCollectionKg || 0 | number: '1.0-0' }} kg</strong>
+    </div>
+    <div class="production-item">
+      <span>Cible</span>
+      <strong>{{ verger.rendementEstime || 0 | number: '1.0-0' }} kg</strong>
+    </div>
+  </div>
+</div>

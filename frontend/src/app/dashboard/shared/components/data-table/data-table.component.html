@@ -1,0 +1,23 @@
+<div class="data-table-container">
+  <div class="table-header" *ngIf="title">
+    <h3>{{ title }}</h3>
+  </div>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th *ngFor="let col of columns">{{ col.header }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let row of data">
+        <td *ngFor="let col of columns">
+          <span *ngIf="!col.template">{{ row[col.field] }}</span>
+          <span *ngIf="col.template">{{ col.template(row[col.field]) }}</span>
+        </td>
+      </tr>
+      <tr *ngIf="data.length === 0">
+        <td [colSpan]="columns.length" class="empty-message">Aucune donnée</td>
+      </tr>
+    </tbody>
+  </table>
+</div>

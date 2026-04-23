@@ -1,0 +1,10 @@
+<div class="alert-badge" [style.border-left-color]="getAlertColor()">
+  <span class="alert-icon" [style.color]="getAlertColor()">{{ getAlertIcon() }}</span>
+  <div class="alert-content">
+    <h5 class="alert-title">{{ alert.titre || 'Alert' }}</h5>
+    <p class="alert-description">{{ alert.description || 'No description' }}</p>
+  </div>
+  <span class="alert-level" [style.background-color]="getAlertColor()">
+    {{ alert.level | uppercase }}
+  </span>
+</div>

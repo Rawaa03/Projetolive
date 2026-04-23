@@ -1,0 +1,59 @@
+<div class="dashboard-container">
+  <!-- Sidebar Navigation -->
+  <aside class="sidebar" [class.collapsed]="!sidebarOpen">
+    <div class="sidebar-header">
+      <h2>Olive Collecte</h2>
+      <button class="toggle-btn" (click)="toggleSidebar()">
+        <span>≡</span>
+      </button>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div *ngIf="userRole === 'AGRICULTEUR'" class="nav-section">
+        <h3>Menu</h3>
+        <a href="javascript:void(0)" (click)="navigateTo('agriculteur')" class="nav-link">
+          <span class="icon">📊</span>
+          <span *ngIf="sidebarOpen">Tableau de Bord</span>
+        </a>
+      </div>
+
+      <div *ngIf="userRole === 'RESPONSABLE'" class="nav-section">
+        <h3>Menu</h3>
+        <a href="javascript:void(0)" (click)="navigateTo('responsable')" class="nav-link">
+          <span class="icon">📊</span>
+          <span *ngIf="sidebarOpen">Supervision</span>
+        </a>
+      </div>
+
+      <div *ngIf="userRole === 'ADMIN'" class="nav-section">
+        <h3>Menu</h3>
+        <a href="javascript:void(0)" (click)="navigateTo('admin')" class="nav-link">
+          <span class="icon">📊</span>
+          <span *ngIf="sidebarOpen">Système</span>
+        </a>
+      </div>
+    </nav>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Top Bar -->
+    <header class="top-bar">
+      <div class="top-bar-left">
+        <h1>Gestion de Collecte d'Olives</h1>
+      </div>
+      <div class="top-bar-right">
+        <div class="user-info">
+          <span class="user-name">{{ userName }}</span>
+          <span class="user-role">{{ userRole }}</span>
+        </div>
+        <button class="logout-btn" (click)="logout()">Déconnexion</button>
+      </div>
+    </header>
+
+    <!-- Dashboard Content -->
+    <section class="dashboard-content">
+      <router-outlet></router-outlet>
+    </section>
+  </main>
+</div>

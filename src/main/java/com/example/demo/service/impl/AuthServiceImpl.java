@@ -42,14 +42,47 @@ public class AuthServiceImpl implements com.example.demo.service.AuthService{
     private EmailService emailService;
 
     // ========== MÉTHODES D'AUTHENTIFICATION ==========
+
+ 
     public void changerMotDePasseAdmin(String id, String nouveauMotDePasse) {
+    	System.out.println("changing the password");
         Utilisateur utilisateur = utilisateurRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
 
-        utilisateur.setMotDePasse(passwordEncoder.encode(nouveauMotDePasse));
-        utilisateurRepository.save(utilisateur);
+        // Vérifier que le mot de passe n'est pas null ou vide
+        if (nouveauMotDePasse == null || nouveauMotDePasse.trim().isEmpty()) {
+            throw new RuntimeException("Le mot de passe ne peut pas être vide");
+        }
+        
+        // Vérifier la longueur minimale
+        if (nouveauMotDePasse.length() < 6) {
+            throw new RuntimeException("Le mot de passe doit contenir au moins 6 caractères");
+        }
 
-        System.out.println("🔑 Admin a changé le mot de passe pour: " + utilisateur.getEmail());
+        System.out.println("🔑 Admin change mot de passe pour: " + utilisateur.getEmail());
+        System.out.println("📝 Nouveau mot de passe: " + nouveauMotDePasse);
+        
+        // Encoder le mot de passe
+        String encodedPassword = passwordEncoder.encode(nouveauMotDePasse);
+        utilisateur.setMotDePasse(encodedPassword);
+        utilisateurRepository.save(utilisateur);
+        System.out.println("🔑 NOUVEAU MOT DE PASSE POUR " + utilisateur.getEmail() + ": " + nouveauMotDePasse);
+
+        // ========== AJOUTER L'ENVOI D'EMAIL ==========
+        try {
+            emailService.envoyerMotDePasse(
+                    utilisateur.getEmail(),
+                    utilisateur.getNom(),
+                    utilisateur.getPrenom(),
+                    nouveauMotDePasse
+            );
+            System.out.println("✅ Email envoyé à " + utilisateur.getEmail() + " avec le nouveau mot de passe");
+        } catch (Exception e) {
+            System.err.println("❌ Erreur lors de l'envoi de l'email: " + e.getMessage());
+            // Ne pas bloquer le changement de mot de passe si l'email échoue
+        }
+
+        System.out.println("✅ Admin a changé le mot de passe pour: " + utilisateur.getEmail());
     }
     public Map<String, Object> login(String email, String motDePasse) {
         System.out.println("🔐 Tentative de connexion pour: " + email);
@@ -242,7 +275,7 @@ public class AuthServiceImpl implements com.example.demo.service.AuthService{
     }
 
     public List<Utilisateur> listerUtilisateurs() {
-        return utilisateurRepository.findAll();
+        return utilisateurRepository.findByEstSupprimeFalse();
     }
 
     public Utilisateur mettreAJourUtilisateur(String id, Utilisateur utilisateur) {
@@ -259,7 +292,11 @@ public class AuthServiceImpl implements com.example.demo.service.AuthService{
     }
 
     public void supprimerUtilisateur(String id) {
-        utilisateurRepository.deleteById(id);
+    	utilisateurRepository.findById(id).ifPresent(utilisateur -> {
+            utilisateur.setEstSupprime(true);
+            utilisateurRepository.save(utilisateur);
+        });
+    
     }
 
     public Authentication authenticate(String email, String motDePasse) {
@@ -403,6 +440,16 @@ public class AuthServiceImpl implements com.example.demo.service.AuthService{
 
         utilisateur.setCompteActif(false);
         utilisateur.setEstActif(false);
+
+        return utilisateurRepository.save(utilisateur);
+    }
+
+    public Utilisateur reactiverCompte(String id) {
+        Utilisateur utilisateur = utilisateurRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+
+        utilisateur.setCompteActif(true);
+        utilisateur.setEstActif(true);
 
         return utilisateurRepository.save(utilisateur);
     }

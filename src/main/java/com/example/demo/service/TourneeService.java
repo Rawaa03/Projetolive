@@ -5,53 +5,40 @@ import com.example.demo.dto.TourneeRequest;
 import com.example.demo.dto.TourneeResponse;
 import com.example.demo.model.StatutTournee;
 import com.example.demo.model.Tournee;
+import com.example.demo.model.Utilisateur;
+
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 public interface TourneeService {
-
-    /** Create a new PLANIFIEE tournée. */
-    TourneeResponse creer(TourneeRequest request);
-
-    /** Get one tournée by id (DTO). */
-    TourneeResponse getById(String id);
-
-    /** Get raw Tournee entity by id (used internally by other services). */
+    
+    // CREATE
+    TourneeResponse creer(TourneeRequest request, UserDetails currentUser);
+    
+    // READ
+    TourneeResponse getById(String id, UserDetails currentUser);
     Tournee getTourneeById(String id);
+    List<TourneeResponse> getAll(UserDetails currentUser);
+    List<TourneeResponse> getByVerger(String vergerId, UserDetails currentUser);
+    List<TourneeResponse> getByStatut(StatutTournee statut, UserDetails currentUser);
+    List<TourneeResponse> getActive(UserDetails currentUser);
+    
+    // STATE TRANSITIONS
+    TourneeResponse demarrer(String id, UserDetails currentUser);
+    TourneeResponse terminer(String id, TerminerTourneeRequest request, UserDetails currentUser);
+    TourneeResponse annuler(String id, UserDetails currentUser);
+    
+    // UPDATE / DELETE
+    TourneeResponse mettreAJour(String id, TourneeRequest request, UserDetails currentUser);
+    void supprimer(String id, UserDetails currentUser);
+    
+    // AGGREGATES
+    Double getTotalCollecteParVerger(String vergerId, UserDetails currentUser);
+    int calculerNbTourneesNecessaires(String vergerId, UserDetails currentUser);
 
-    /** List all tournées. */
-    List<TourneeResponse> getAll();
+	Optional<List<Utilisateur>> getAllTravailleurs();
 
-    /** List tournées by verger. */
-    List<TourneeResponse> getByVerger(String vergerId);
-
-    /** List tournées by statut. */
-    List<TourneeResponse> getByStatut(StatutTournee statut);
-
-    /** List active tournées (PLANIFIEE or EN_COURS). */
-    List<TourneeResponse> getActive();
-
-    /** Move statut to EN_COURS and set dateDebut = now. */
-    TourneeResponse demarrer(String id);
-
-    /**
-     * Move statut to TERMINEE, record collected kg, update benne charge,
-     * update verger statut if all trees are done.
-     */
-    TourneeResponse terminer(String id, TerminerTourneeRequest request);
-
-    /** Cancel the tournée. */
-    TourneeResponse annuler(String id);
-
-    /** Update planning fields (only while PLANIFIEE). */
-    TourneeResponse mettreAJour(String id, TourneeRequest request);
-
-    /** Delete (only while PLANIFIEE or ANNULEE). */
-    void supprimer(String id);
-
-    /** Sum of quantiteCollecteeKg of all TERMINEE tournées for a given verger. */
-    Double getTotalCollecteParVerger(String vergerId);
-
-    /** How many tournées are needed to cover all trees of a verger? */
-    int calculerNbTourneesNecessaires(String vergerId);
 }

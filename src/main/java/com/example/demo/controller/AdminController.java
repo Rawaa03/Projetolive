@@ -47,9 +47,10 @@ public class AdminController {
         Utilisateur utilisateurMisAJour = authServiceImpl.mettreAJourUtilisateur(id, utilisateur);
         return ResponseEntity.ok(utilisateurMisAJour);
     }
-
+    @PreAuthorize("hasRole('ADMIN')") // Ajoutez cette annotation
     @DeleteMapping("/utilisateurs/{id}")
     public ResponseEntity<Void> supprimerUtilisateur(@PathVariable String id) {
+    	System.out.println("suppression de user"+id);
         authServiceImpl.supprimerUtilisateur(id);
         return ResponseEntity.noContent().build();
     }
@@ -62,6 +63,14 @@ public class AdminController {
         Map<String, Object> response = new HashMap<>();
         response.put("message", "Compte désactivé avec succès");
         response.put("utilisateur", desactive);
+        return ResponseEntity.ok(response);
+    }
+    @PostMapping("/reactiver-compte/{id}")
+    public ResponseEntity<Map<String, Object>> reactiverCompte(@PathVariable String id) {
+        Utilisateur active = authServiceImpl.reactiverCompte(id);
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", "Compte activé avec succès");
+        response.put("utilisateur", active);
         return ResponseEntity.ok(response);
     }
 

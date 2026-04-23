@@ -9,7 +9,10 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 @SpringBootApplication
 @PropertySource("classpath:application.properties")
@@ -111,7 +114,10 @@ public class ProjetCollecteOliveApplication {
                 equipeRecolte.setRole(Role.TRAVAILLEUR);
                 equipeRecolte.setAdresse("Sousse, Tunisie");
                 equipeRecolte.setEstActif(true);
-                equipeRecolte.setDateCreation(new Date());
+                List<String> specialites = new ArrayList<>();
+                specialites.add("cueillette");
+                specialites.add("ramassage");
+                equipeRecolte.setSpecialites(specialites);  // ✅ Avec valeurs                equipeRecolte.setDateCreation(new Date());
 
                 BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
                 equipeRecolte.setMotDePasse(encoder.encode("equipe123"));

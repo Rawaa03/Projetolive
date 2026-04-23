@@ -1,6 +1,8 @@
 package com.example.demo.controller;
 
+import com.example.demo.model.Role;
 import com.example.demo.model.Utilisateur;
+import com.example.demo.repository.UtilisateurRepository;
 import com.example.demo.service.impl.AgriculteurServiceImpl;
 import com.example.demo.service.impl.TravailleurServiceImpl;
 
@@ -26,7 +28,15 @@ public class ResponsableController {
 
     @Autowired
     private TravailleurServiceImpl travailleurServiceImpl;
+    @Autowired
+    private  UtilisateurRepository utilisateurRepository;
 
+    @GetMapping("/travailleurs")
+    public ResponseEntity<List<Utilisateur>> getTravailleurs() {
+        List<Utilisateur> travailleurs = utilisateurRepository.findByRole(Role.TRAVAILLEUR);
+        System.out.println("📋 Récupération des travailleurs: " + travailleurs.size() + " trouvés");
+        return ResponseEntity.ok(travailleurs);
+    }
     // ==================== AGRICULTEURS ====================
 
     @PostMapping("/agriculteurs")
@@ -76,10 +86,7 @@ public class ResponsableController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/travailleurs")
-    public ResponseEntity<List<Utilisateur>> getAllTravailleurs() {
-        return ResponseEntity.ok(travailleurServiceImpl.listerTravailleurs());
-    }
+    
     
     
     

@@ -56,6 +56,12 @@ public interface UtilisateurRepository extends MongoRepository<Utilisateur, Stri
 
     List<Utilisateur> findByRoleAndNomExploitationContaining(Role role, String nomExploitation);
 
+
+	List<Utilisateur> findByEstSupprimeFalse();
+
+	List<Utilisateur> findByRoleAndEstSupprimeFalse(String string);
+
+
     // ⚠️ SUPPRIMEZ CES DEUX LIGNES (elles causent l'erreur) :
     // List<Utilisateur> findByRoleAndACompteIsFalse(Role role);
     // long countByRoleAndACompteIsFalse(Role role);

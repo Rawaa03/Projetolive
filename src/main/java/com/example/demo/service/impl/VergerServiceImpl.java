@@ -4,6 +4,7 @@ import com.example.demo.dto.VergerRequest;
 import com.example.demo.dto.VergerResponse;
 import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.model.Geolocalisation;
+import com.example.demo.model.Role;
 import com.example.demo.model.Utilisateur;
 import com.example.demo.model.Verger;
 import com.example.demo.model.enums.StatutVerger;
@@ -37,11 +38,24 @@ public class VergerServiceImpl implements VergerService {
         Utilisateur agriculteur = getAgriculteurOrThrow(req.getAgriculteurId());
 
         Utilisateur responsable;
-        if (req.getResponsableId() != null && !req.getResponsableId().isBlank()) {
+        boolean isAdmin = userDetails.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
+        if (isAdmin) {
+            if (req.getResponsableId() == null || req.getResponsableId().isBlank()) {
+                throw new IllegalArgumentException("En tant qu'admin, vous devez préciser responsableId");
+            }
+            responsable = getUtilisateurOrThrow(req.getResponsableId());
+        } else if (req.getResponsableId() != null && !req.getResponsableId().isBlank()) {
+            // Allow a responsable to explicitly set responsableId only if needed (kept for compatibility)
             responsable = getUtilisateurOrThrow(req.getResponsableId());
         } else {
             responsable = utilisateurRepo.findByEmail(userDetails.getUsername())
                     .orElseThrow(() -> new ResourceNotFoundException("Responsable introuvable"));
+        }
+
+        if (responsable.getRole() != Role.RESPONSABLE) {
+            throw new IllegalArgumentException("responsableId doit référencer un utilisateur avec le rôle RESPONSABLE");
         }
 
         Verger.VergerBuilder builder = Verger.builder()

@@ -39,7 +39,7 @@ public class CollecteServiceImpl implements CollecteService {
     @Override
     public List<Collecte> getCollectesByResponsable(String responsableId) {
         // Récupérer tous les vergers assignés à ce responsable
-        List<Verger> vergersResponsable = vergerRepo.findByResponsableId(responsableId);
+        List<Verger> vergersResponsable = vergerRepo.findByResponsableIdAndEstSupprimerFalse(responsableId);
         
         if (vergersResponsable.isEmpty()) {
             return new ArrayList<>();
@@ -128,6 +128,9 @@ public class CollecteServiceImpl implements CollecteService {
         Verger verger = null;
         if (collecte.getVergerId() != null) {
             verger = vergerRepo.findById(collecte.getVergerId()).orElse(null);
+            if (verger != null && Boolean.TRUE.equals(verger.getEstSupprimer())) {
+                verger = null;
+            }
         } else if (!tournees.isEmpty()) {
             verger = tournees.get(0).getVerger();
         }
@@ -221,7 +224,7 @@ public class CollecteServiceImpl implements CollecteService {
         // ✅ Vérifier si le verger est entièrement récolté pour clôturer la collecte
         if (collecte.getVergerId() != null) {
             Verger verger = vergerRepo.findById(collecte.getVergerId()).orElse(null);
-            if (verger != null && totalArbresRecoltes >= verger.getNbArbre()) {
+            if (verger != null && Boolean.FALSE.equals(verger.getEstSupprimer()) && totalArbresRecoltes >= verger.getNbArbre()) {
                 collecte.setEstCloturee(true);
                 collecte.setDateFinCampagne(new Date());
                 collecte.setStatut(StatutCollecte.TERMINEE);

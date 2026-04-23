@@ -176,6 +176,48 @@ public class VergerServiceImpl implements VergerService {
     }
 
     @Override
+    public VergerResponse mettreAJourAdmin(String id, VergerRequest req) {
+        Verger v = findOrThrow(id);
+
+        // Allow admin to change agriculteur (ownership)
+        if (req.getAgriculteurId() != null && !req.getAgriculteurId().isBlank()) {
+            Utilisateur agriculteur = getAgriculteurOrThrow(req.getAgriculteurId());
+            v.setAgriculteur(agriculteur);
+        }
+
+        // Allow admin to change responsable (manager)
+        if (req.getResponsableId() != null && !req.getResponsableId().isBlank()) {
+            Utilisateur responsable = getUtilisateurOrThrow(req.getResponsableId());
+            if (responsable.getRole() != Role.RESPONSABLE) {
+                throw new IllegalArgumentException("responsableId doit référencer un utilisateur avec le rôle RESPONSABLE");
+            }
+            v.setResponsable(responsable);
+        } else if (req.getResponsableId() != null && req.getResponsableId().isBlank()) {
+            // Explicit blank means "unassign responsable"
+            v.setResponsable(null);
+        }
+
+        // Update normal fields too
+        v.setSuperficie(req.getSuperficie());
+        v.setTypeOlive(req.getTypeOlive());
+        v.setRendementEstime(req.getRendementEstime());
+        v.setMaturiteActuelle(req.getMaturiteActuelle());
+        v.setNbArbre(req.getNbArbre());
+        if (req.getStatut() != null) v.setStatut(req.getStatut());
+
+        if (req.getLatitude() != null && req.getLongitude() != null) {
+            v.setLocation(new GeoJsonPoint(req.getLongitude(), req.getLatitude()));
+            v.setGeolocalisation(Geolocalisation.builder()
+                    .latitude(req.getLatitude())
+                    .longitude(req.getLongitude())
+                    .adresseIndicative(req.getAdresseIndicative())
+                    .build());
+        }
+
+        return toResponse(vergerRepo.save(v));
+    }
+
+    @Override
     public VergerResponse mettreAJourLocalisation(String id,
                                                   Double latitude,
                                                   Double longitude,

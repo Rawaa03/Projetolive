@@ -50,4 +50,6 @@ public interface VergerRepository extends MongoRepository<Verger, String> {
 
     @Query("{ 'responsable' : ?0, 'estSupprimer' : false }")
     List<Verger> findByResponsableIdAndEstSupprimerFalse(ObjectId responsableId);
+
+	List<Verger> findByResponsableId(String responsableId);
 }

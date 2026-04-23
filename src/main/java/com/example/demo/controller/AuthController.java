@@ -6,6 +6,7 @@ import com.example.demo.service.impl.AuthServiceImpl;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,7 +23,17 @@ public class AuthController {
 
     @Autowired
     private UtilisateurRepository utilisateurRepository;
-
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/admin/utilisateurs/{id}/photo")
+    public ResponseEntity<Map<String, Object>> updatePhotoAdmin(
+            @PathVariable String id,
+            @RequestBody Map<String, Object> body) {
+        Utilisateur utilisateur = utilisateurRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+        utilisateur.setPhotoProfile((String) body.get("photoProfile"));
+        utilisateurRepository.save(utilisateur);
+        return ResponseEntity.ok(Map.of("message", "Photo mise à jour"));
+    }
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> login(@RequestBody Map<String, String> request) {
         String email = request.get("email");

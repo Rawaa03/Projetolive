@@ -1,6 +1,7 @@
 package com.example.demo.controller;
 
 import com.example.demo.dto.AdminResponsableVergersResponse;
+import com.example.demo.dto.AdminUpdateAgriculteurRequest;
 import com.example.demo.dto.AdminUpdateResponsableRequest;
 import com.example.demo.dto.VergerRequest;
 import com.example.demo.dto.VergerResponse;
@@ -225,6 +226,9 @@ public class AdminController {
 
             // Assign listed vergers to this responsable
             List<com.example.demo.model.Verger> toAssign = new ArrayList<>(vergerRepository.findAllById(targetIds));
+            toAssign = toAssign.stream()
+                    .filter(v -> Boolean.FALSE.equals(v.getEstSupprimer()))
+                    .collect(Collectors.toList());
             toAssign.forEach(v -> v.setResponsable(savedResponsable));
             vergerRepository.saveAll(toAssign);
 
@@ -244,6 +248,63 @@ public class AdminController {
         }
 
         return ResponseEntity.ok(savedResponsable);
+    }
+
+    // ========== ADMIN : AGRICULTEURS ==========
+
+    /**
+     * Update agriculteur fields and optionally reassign which vergers they own.
+     *
+     * If ownedVergerIds is provided:
+     * - Assigns those vergers to this agriculteur.
+     * - If replaceOwnedVergers=true, unassigns any other vergers currently owned by this agriculteur.
+     */
+    @PatchMapping("/agriculteurs/{id}")
+    public ResponseEntity<Utilisateur> adminUpdateAgriculteur(
+            @PathVariable String id,
+            @RequestBody AdminUpdateAgriculteurRequest req) {
+
+        Utilisateur agriculteur = utilisateurRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Agriculteur non trouvé avec l'id: " + id));
+
+        if (req.getPrenom() != null) agriculteur.setPrenom(req.getPrenom());
+        if (req.getNom() != null) agriculteur.setNom(req.getNom());
+        if (req.getTelephone() != null) agriculteur.setTelephone(req.getTelephone());
+        if (req.getAdresse() != null) agriculteur.setAdresse(req.getAdresse());
+        if (req.getNomExploitation() != null) agriculteur.setNomExploitation(req.getNomExploitation());
+
+        Utilisateur savedAgriculteur = utilisateurRepository.save(agriculteur);
+
+        if (req.getOwnedVergerIds() != null) {
+            List<String> targetIds = req.getOwnedVergerIds().stream()
+                    .filter(Objects::nonNull)
+                    .map(String::trim)
+                    .filter(s -> !s.isBlank())
+                    .distinct()
+                    .collect(Collectors.toList());
+
+            List<com.example.demo.model.Verger> toAssign = new ArrayList<>(vergerRepository.findAllById(targetIds));
+            toAssign = toAssign.stream()
+                    .filter(v -> Boolean.FALSE.equals(v.getEstSupprimer()))
+                    .collect(Collectors.toList());
+            toAssign.forEach(v -> v.setAgriculteur(savedAgriculteur));
+            vergerRepository.saveAll(toAssign);
+
+            boolean replace = Boolean.TRUE.equals(req.getReplaceOwnedVergers());
+            if (replace) {
+                List<com.example.demo.model.Verger> currentlyOwned =
+                        vergerRepository.findByAgriculteurIdAndEstSupprimerFalse(savedAgriculteur.getId());
+
+                List<com.example.demo.model.Verger> toUnassign = currentlyOwned.stream()
+                        .filter(v -> v.getId() != null && !targetIds.contains(v.getId()))
+                        .collect(Collectors.toList());
+
+                toUnassign.forEach(v -> v.setAgriculteur(null));
+                vergerRepository.saveAll(toUnassign);
+            }
+        }
+
+        return ResponseEntity.ok(savedAgriculteur);
     }
 
     /**
